@@ -46,8 +46,7 @@ class App(wx.App):
         wx.SPLASH_TIMEOUT, 3000, None, -1)
         wx.Yield()
         # Fin splash screen
-        #frame = Frame(u'SancaBase - Administrador general para Centros de Formación Profesional (Beta)', (30, 30), (800, 600))
-        frame = Frame(u'SancaBase - Administrador general para Centros de Formación Profesional (Beta)', (30, 30), (800, 600))
+        frame = Frame(u'SancaBase2 - Gestion de Centros educativos ', (30, 30), (800, 600))
 
         frame.CenterOnScreen()
         frame.Show()
@@ -71,7 +70,6 @@ class Frame(wx.Frame):
         import sqlite3 as sql3
         conexion = sql3.connect(bbdd)
         cur = conexion.cursor()
-        #cur.execute('''CREATE TABLE curso_%s (`id_alumno` VARCHAR(11) NOT NULL, `abandono` BOOL NOT NULL  DEFAULT '0', `dia` DATE NULL, `causa` TINYTEXT NULL, PRIMARY KEY (`id_alumno`))''')
         ##### Tabla Administrativos
         cur.execute ('''CREATE TABLE IF NOT EXISTS administrativos (
   id_administrativo integer PRIMARY KEY AUTOINCREMENT NOT NULL, cargo text(12)  NOT NULL,
