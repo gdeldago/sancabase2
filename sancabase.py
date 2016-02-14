@@ -28,7 +28,8 @@
 import wx
 import sys
 import os
-import MySQLdb
+##import MySQLdb
+##Se utilizará SQLite para realizar un trabajo local más rapido
 import wx.lib.mixins.listctrl
 import pickle
 import imp
@@ -59,19 +60,230 @@ class Frame(wx.Frame):
         wx.Frame.__init__(self, None, -1, title, pos, size)
 
 # Conexión a la base de datos
-	archivoBBDD = "sancabase.db"
-	#def checkfile(archivoBBDD):
-	import os.path
-	if os.path.exists(archivoBBDD):
-		print "El fichero existe"
-	else:
-		print "El fichero no existe"
-		bbdd = archivoBBDD
-		import sqlite3 as sql3
-		conexion = sql3.connect(bbdd)
-		cur = conexion.cursor()
-		cur.execute('''CREATE TABLE curso_%s (`id_alumno` VARCHAR(11) NOT NULL, `abandono` BOOL NOT NULL  DEFAULT '0', `dia` DATE NULL, `causa` TINYTEXT NULL, PRIMARY KEY (`id_alumno`))''')
+    archivoBBDD = "sancabase2.db"
+    #def checkfile(archivoBBDD):
+    import os.path
+    if os.path.exists(archivoBBDD):
+        print "El fichero existe"
+    else:
+        print "El fichero no existe"
+        bbdd = archivoBBDD
+        import sqlite3 as sql3
+        conexion = sql3.connect(bbdd)
+        cur = conexion.cursor()
+        #cur.execute('''CREATE TABLE curso_%s (`id_alumno` VARCHAR(11) NOT NULL, `abandono` BOOL NOT NULL  DEFAULT '0', `dia` DATE NULL, `causa` TINYTEXT NULL, PRIMARY KEY (`id_alumno`))''')
+        ##### Tabla Administrativos
+        cur.execute ('''CREATE TABLE IF NOT EXISTS administrativos (
+  id_administrativo integer PRIMARY KEY AUTOINCREMENT NOT NULL, cargo text(12)  NOT NULL,
+  apellidos text(30)  NOT NULL,  nombres text(40)  NOT NULL,
+  calle text(40)  NOT NULL, numero text(6)  NOT NULL,
+  localidad text(30)  NOT NULL, telefono text(16)  NOT NULL,
+  celular text(16)  default NULL, correo text(64)  default NULL)''')
 
+#############################
+        ##### Tabla Alumnos
+        cur.execute('''CREATE TABLE IF NOT EXISTS alumnos (
+  id_alumno integer PRIMARY KEY AUTOINCREMENT NOT NULL,
+  apellidos text(20) NOT NULL,
+  nombres text(25) NOT NULL,
+  sexo char(1) NOT NULL,
+  tipo_doc text(3) NOT NULL,
+  num_doc text(12) NOT NULL,
+  nacionalidad char(2) NOT NULL,
+  fecha_nac numeric NOT NULL,
+  lugar_nac text(20) NOT NULL,
+  calle_dom text(30) NOT NULL,
+  num_dom text(5) NOT NULL,
+  piso_dom text(2) default NULL,
+  dpto_dom text(2) default NULL,
+  cp_dom text(8) NOT NULL,
+  localidad_dom text(25) NOT NULL,
+  pcia_dom text(15) NOT NULL,
+  tel_dom text(15) NOT NULL,
+  estudios text(14) NOT NULL,
+  hasta_est char(1) NOT NULL default '0',
+  correo text(40) default NULL,
+  nombre_madre text(30) default NULL,
+  tipo_doc_madre text(3) default NULL,
+  num_doc_madre text(8) default NULL,
+  nac_madre char(2) default NULL,
+  fecha_nac_madre numeric default NULL,
+  ocupacion_madre text(30) default NULL,
+  vive_madre INTEGER(1) default NULL,
+  tel_contacto_madre text(15) default NULL,
+  nombre_padre text(30) default NULL,
+  tipo_doc_padre text(3) default NULL,
+  num_doc_padre text(8) default NULL,
+  nac_padre char(2) default NULL,
+  fecha_nac_padre numeric default NULL,
+  ocupacion_padre text(30) default NULL,
+  vive_padre INTEGER(1) default NULL,
+  tel_contacto_padre text(15) default NULL,
+  trat_medico TEXT utf8_unicode_ci,
+  observaciones TEXT utf8_unicode_ci,
+  jefe INTEGER(1) NOT NULL,
+  empleo text(30) NOT NULL,
+  resp text(10) NOT NULL default 'No aplica',
+  resp_esjefe char(1) default NULL,
+  resp_nombre text(65) default NULL,
+  resp_nac char(2) default NULL,
+  resp_profesion text(30) default NULL,
+  resp_condicion text(30) default NULL,
+  resp_estudios text(14) default NULL,
+  resp_hasta_estudios char(1) default NULL,
+  resp_tipo_doc text(3) default NULL,
+  resp_num_doc text(12) default NULL,
+  resp_calle_dom text(30) default NULL,
+  resp_num_dom text(5) default NULL,
+  resp_piso_dom text(2) default NULL,
+  resp_dpto_dom text(2) default NULL,
+  resp_localidad_dom text(25) default NULL,
+  resp_cp_dom text(8) default NULL,
+  resp_te_dom text(15) default NULL,
+  obra_social text(30) default NULL,
+  num_afiliado text(15) default NULL,
+  enfermedad char(1) NOT NULL default '0',
+  enf_cual text(30) default NULL,
+  internado char(1) NOT NULL default '0',
+  int_por text(30) default NULL,
+  alergia char(1) NOT NULL default '0',
+  alergia_man text(40) default NULL,
+  alergia_trat char(1) NOT NULL default '0',
+  tratamiento char(1) NOT NULL default '0',
+  trat_espec text(30) default NULL,
+  quirurgico char(1) NOT NULL default '0',
+  quir_edad text(2) default NULL,
+  quir_tipo text(30) default NULL,
+  limitacion char(1) NOT NULL default '0',
+  limitacion_aclaracion text(30) default NULL,
+  otros text(60) default NULL,
+  institucion text(50) default NULL,
+  institucion_dom text(30) default NULL,
+  institucion_te text(15) default NULL,
+  medico_apellido text(30) default NULL,
+  medico_nombres text(30) default NULL,
+  medico_dom text(30) default NULL,
+  medico_te text(15) default NULL,
+  familiar_apellido text(30) default NULL,
+  familiar_nombres text(30) default NULL,
+  familiar_dom text(30) default NULL,
+  familiar_te text(15) default NULL)''')
+        
+        #######################################################
+        #### Tabla Auxiliares
+        cur.execute('''CREATE TABLE IF NOT EXISTS auxiliares (
+  id_auxiliar integer PRIMARY KEY AUTOINCREMENT NOT NULL,
+  cargo text(12)  NOT NULL, apellidos text(30)  NOT NULL,
+  nombres text(40)  NOT NULL, calle text(40)  NOT NULL,
+  numero text(6)  NOT NULL, localidad text(30)  NOT NULL,
+  telefono text(16)  NOT NULL, dni text(16)  default NULL,
+  correo text(64)  NOT NULL, inicio date NOT NULL)''')
+        #######################################################
+        #### Tabla coordinadores
+        cur.execute('''CREATE TABLE IF NOT EXISTS coordinadores (
+  id_coordinador integer PRIMARY KEY AUTOINCREMENT  NOT NULL,
+  apellidos text(20)  NOT NULL,  nombres text(25)  NOT NULL,
+  te_contacto text(15)  NOT NULL,  celular text(16)  default NULL,
+  calle text(30)  NOT NULL,  numero text(6)  default NULL,
+  localidad text(30)  default NULL,  correo text(40)  default NULL)''')
+        ######################################################
+        #### Tabla Cursos
+        cur.execute('''CREATE TABLE IF NOT EXISTS cursos (
+  id_curso integer PRIMARY KEY AUTOINCREMENT NOT NULL,
+  num_curso text(5)  NOT NULL,  tipo text(3)  NOT NULL default 'FP',
+  especialidad text(60)  NOT NULL,  instructor text(64)  NOT NULL,
+  ciclo text(4)  NOT NULL default '2016',  fecha_inicio date NOT NULL,
+  fecha_final date NOT NULL,  horas text(3)  NOT NULL,
+  horario text(50)  NOT NULL default 'Lunes a viernes',
+  establecimiento text(40)  NOT NULL,  estado char(1)  NOT NULL default 'A',
+  motivo_baja text(30)  default NULL,  fecha_baja date default NULL)''')
+        ######################################################
+        #### Tabla Especialidades
+        cur.execute('''CREATE TABLE IF NOT EXISTS especialidades (
+  id_especialidad integer PRIMARY KEY AUTOINCREMENT NOT NULL,
+  denominacion text(60)  NOT NULL,  tipo text(3)  NOT NULL,
+  duracion integer NOT NULL)''')
+        #### Tabla Establecimientos
+        cur.execute('''CREATE TABLE IF NOT EXISTS establecimientos (
+  id_establecimiento integer PRIMARY KEY AUTOINCREMENT NOT NULL,
+  tipo text(3)  NOT NULL ,  numero char(3)  NOT NULL default '000',
+  nombre text(40)  NOT NULL,  calle text(20)  NOT NULL,
+  num_puerta text(5)  NOT NULL,  localidad text(25)  NOT NULL,
+  cp text(8)  NOT NULL,  telefono text(15)  NOT NULL,
+  correo text(40)  NOT NULL,  site text(64)  default 'http://',
+  distrito text(20)  NOT NULL default 'Ingrese nombre',
+  coordinador text(40)  NOT NULL)''')
+        #### Tabla FichaCurso
+        cur.execute ('''CREATE TABLE IF NOT EXISTS fichacurso (
+  id_fc integer PRIMARY KEY AUTOINCREMENT NOT NULL,
+  apell_nom text(70)  NOT NULL,  nac text(20)  NOT NULL,
+  fecha_nac date NOT NULL,  tipo_doc text(10)  NOT NULL,
+  num_doc text(12)  NOT NULL,  domicilio text(70)  NOT NULL,
+  sexo char(1)  NOT NULL)''')
+        #### Tabla Gastos
+        cur.execute('''CREATE TABLE IF NOT EXISTS gastos (
+  id_gasto integer PRIMARY KEY AUTOINCREMENT NOT NULL ,
+  fecha date NOT NULL,  tipo text(1)  NOT NULL default 'G',
+  comprobante text(40)  default NULL,  responsable text(60)  NOT NULL,
+  debe float default NULL,  haber float default NULL,
+  destino text(30)  NOT NULL)''')
+        ################################3
+        #### Tabla Instructores
+        cur.execute('''CREATE TABLE IF NOT EXISTS instructores (
+  id_instructor integer PRIMARY KEY AUTOINCREMENT NOT NULL,
+  apellidos text(20)  NOT NULL,  nombres text(25)  NOT NULL,
+  te_contacto text(15)  NOT NULL,  celular text(16)  default 'no tiene',
+  calle text(30)  NOT NULL,  numero text(6)  default NULL,
+  localidad text(30)  default NULL,  correo text(40)  NOT NULL)''')
+        ###############################
+        #### Tabla Legajo
+        cur.execute('''CREATE TABLE IF NOT EXISTS legajo (
+  id_legajo integer PRIMARY KEY AUTOINCREMENT NOT NULL,
+  id_alumno integer(11) NOT NULL,  nombre text(60)  NOT NULL,
+  fechanac date NOT NULL,  lugarnac text(50)  NOT NULL,
+  estcivil text(40)  NOT NULL,  domicilio text(60)  NOT NULL,
+  te text(20)  NOT NULL,  plansocial integer(1) NOT NULL,
+  queplan text(30)  NOT NULL,  planfamiliar integer(1) NOT NULL,
+  queplanfamiliar text(30)  NOT NULL,  empleo text(40)  NOT NULL,
+  ubicacionempleo text(40)  NOT NULL,  educformal text(50)  NOT NULL,
+  abandono integer(1) NOT NULL,  causaabandono text(40)  NOT NULL,
+  cursando integer(1) NOT NULL,  cursandolugar text(30)  NOT NULL,
+  otroscursosfp integer(1) NOT NULL,  otroscursosfpcuales text(40)  NOT NULL,
+  jefefamilia integer(1) NOT NULL,  deportes integer(1) NOT NULL,
+  deportesdonde text(30)  NOT NULL,  tiempolibre text(60)  NOT NULL,
+  eligioelcentro text(60)  NOT NULL,  eligioelcurso text(60)  NOT NULL,
+  judiciales integer(1) NOT NULL,  causas text(100)  NOT NULL,
+  tratmedico text(30)  NOT NULL,  observaciones text  NOT NULL)''')
+        #######################################
+        ### Tabla MiEscuela
+        cur.execute ('''CREATE TABLE IF NOT EXISTS miescuela (
+  id_miescuela integer PRIMARY KEY AUTOINCREMENT NOT NULL,
+  nombre text(40)  NOT NULL,  calle text(30)  NOT NULL,
+  numpuerta text(5)  NOT NULL,  cp text(8)  NOT NULL,
+  localidad text(20)  NOT NULL,  telefono text(15)  default NULL,
+  correo text(64)  default NULL,  site text(64)  default 'web')''')
+        ######################################
+        ##### Tabla Movimientos de Alumnos
+        cur.execute('''CREATE TABLE IF NOT EXISTS mov_alumnos (
+  id_alumno integer PRIMARY KEY AUTOINCREMENT NOT NULL, 
+  tipomov text(1)  NOT NULL,  curso text(5)  NOT NULL,
+  fecha date default NULL,  observaciones text)''')
+        ######################################
+        #### Tabla Seguimiento
+        cur.execute('''CREATE TABLE IF NOT EXISTS seguimiento (
+  id_seguimiento integer PRIMARY KEY AUTOINCREMENT NOT NULL,
+  id_alumno text(4)  NOT NULL,  rubro text(20)  NOT NULL,
+  empresa text(30)  NOT NULL,  estado text(25)  NOT NULL,
+  fecha date NOT NULL)''')
+        #####################################
+        #### Tabla Temporal
+        cur.execute('''CREATE TABLE IF NOT EXISTS temporal (
+  id_alumno integer PRIMARY KEY AUTOINCREMENT NOT NULL,
+  apellidos text(30)  NOT NULL,  nombres text(30)  NOT NULL,
+  sexo char(1)  NOT NULL,  tipo_doc text(3)  NOT NULL,
+  num_doc text(10)  NOT NULL)''')
+####################################
+        cur.close()
         ##self.db = MySQLdb.connect('localhost', 'javier', 'javier', 'escuela', charset='UTF8')
 
 # Menúes
@@ -245,6 +457,7 @@ class Frame(wx.Frame):
 
 # Salir
     def OnExit(self, evt):
+    
         self.Close()
 
 # Actualizar

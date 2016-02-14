@@ -588,7 +588,7 @@ class AltaEstudiante(wx.Frame):
         familiar_apellido = self.text_ctrl_familiar_apellido.GetValue()
         familiar_nombres = self.text_ctrl_familiar_nombres.GetValue()
         familiar_te = self.text_ctrl_familiar_telefono.GetValue()
-        self.db = MySQLdb.connect('localhost', 'javier', 'javier', 'escuela', charset='UTF8')
+        #self.db = MySQLdb.connect('localhost', 'javier', 'javier', 'escuela', charset='UTF8')
         c = self.db.cursor()
         c.execute('''INSERT INTO alumnos (apellidos, nombres, sexo, tipo_doc, num_doc,
          nacionalidad, fecha_nac, lugar_nac, calle_dom, num_dom, piso_dom, dpto_dom,
