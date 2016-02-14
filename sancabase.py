@@ -287,7 +287,7 @@ class Frame(wx.Frame):
 # Menúes
         menuBar = wx.MenuBar()
         menuArchivo = wx.Menu()
-        menuBar.Append(menuArchivo, u'&Aplicación')
+        menuBar.Append(menuArchivo, u'&Aplica_ción')
         actualizar = menuArchivo.Append(-1, u'Ac&tualizar', u'Actualizar la aplicación desde internet')
         exportar = menuArchivo.Append(-1, u'E&xportar', u'Hacer un backup de la base de datos')
         resguardo = menuArchivo.Append(-1, u'Res&guardo de planillas',
