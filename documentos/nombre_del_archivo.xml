@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<richtext version="1.0.0.0" xmlns="http://www.wxwidgets.org">
+  <paragraphlayout textcolor="#000000" fontsize="8" fontstyle="90" fontweight="90" fontunderlined="0" fontface="Sans" alignment="1" parspacingafter="10" parspacingbefore="0" linespacing="10">
+    <paragraph alignment="2">
+      <text textcolor="#FF0000">Simplemente un texto de prueba</text>
+    </paragraph>
+  </paragraphlayout>
+</richtext>

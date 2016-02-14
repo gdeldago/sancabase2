@@ -1,0 +1,3 @@
+Omitiendo «.»
+Resumen de conflictos:
+  Skipped paths: 1

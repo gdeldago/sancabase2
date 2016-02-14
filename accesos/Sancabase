@@ -1,0 +1,4 @@
+#! /bin/bash
+cd ~/svn/sanca/trunk/
+chmod +x sancabase.py
+./sancabase.py
