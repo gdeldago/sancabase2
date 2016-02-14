@@ -393,7 +393,7 @@ class Frame(wx.Frame):
         about = menuAyuda.Append(-1, u'A&cerca de...', u'Info de esta aplicación')
         self.SetMenuBar(menuBar)
         self.CreateStatusBar()
-        self.SetStatusText(u'Sancabase - Administrador de Centros de FP')
+        self.SetStatusText(u'Sancabase2')
 
 # Bindeo de funciones del menú
         self.Bind(wx.EVT_MENU, self.OnActualizar, actualizar)
