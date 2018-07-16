@@ -25,7 +25,6 @@
 ##############################################################################
 
 import wx
-import MySQLdb
 
 # begin wxGlade: extracode
 # end wxGlade
@@ -34,11 +33,15 @@ import MySQLdb
 class ModEstudiante(wx.Frame):
     def __init__(self, *args, **kwds):
         # begin wxGlade: ModEstudiante.__init__
+        archivoBBDD = "sancabase2.db"
+        bbdd = archivoBBDD
+        import sqlite3 as sql3
+        self.db = sql3.connect(bbdd)
         
         f = open('modestudiante', 'r')
         self.alumno = f.readline()
         f.close()
-        self.db = MySQLdb.connect('localhost', 'javier', 'javier', 'escuela', charset='UTF8')
+        
         kwds["style"] = wx.DEFAULT_FRAME_STYLE
         wx.Frame.__init__(self, *args, **kwds)
         self.notebook_1 = wx.Notebook(self, -1, style=0)
@@ -315,8 +318,9 @@ class ModEstudiante(wx.Frame):
         self.OnLimitacion(self.checkbox_limitacion)
         ###########
         #Precarga
+     
         c = self.db.cursor()
-        c.execute('''SELECT * FROM alumnos WHERE id_alumno = %s''' % self.alumno)
+        c.execute('''SELECT * FROM alumnos WHERE id_alumno = ?''', (self.alumno,))
         qr = c.fetchone()
         c.close()
         q = []
@@ -333,9 +337,9 @@ class ModEstudiante(wx.Frame):
         self.combo_box_nacionalidad.SetValue(u'%s' % q[6])
         # rearmar la fecha porque viene diferente desde la db
         nac = q[7]
-        dia = nac.day
-        mes = nac.month
-        anio = nac.year
+        dia = int(nac[8:10])
+        mes = int(nac[5:7])
+        anio = int(nac[0:4])
         nacimiento = wx.DateTimeFromDMY(dia,mes-1,anio)
         self.datepicker_fechanac.SetValue(nacimiento)
         self.text_ctrl_lugarnac.SetValue(u'%s' % q[8])
@@ -790,22 +794,24 @@ class ModEstudiante(wx.Frame):
         familiar_nombres = self.text_ctrl_familiar_nombres.GetValue()
         familiar_te = self.text_ctrl_familiar_telefono.GetValue()
         c = self.db.cursor()
-        c.execute('''UPDATE alumnos SET apellidos = %s, nombres = %s, sexo = %s, tipo_doc = %s, num_doc = %s,
-         nacionalidad = %s, fecha_nac = %s, lugar_nac = %s, calle_dom = %s, num_dom = %s, piso_dom = %s,
-          dpto_dom = %s, cp_dom = %s, localidad_dom = %s, pcia_dom = %s, tel_dom = %s, estudios = %s,
-           hasta_est = %s, correo = %s, jefe = %s, empleo = %s, resp = %s, resp_esjefe = %s,
-            resp_nombre = %s, resp_nac = %s, resp_profesion = %s, resp_condicion = %s, resp_estudios = %s,
-             resp_hasta_estudios = %s, resp_tipo_doc = %s, resp_num_doc = %s, resp_calle_dom = %s,
-              resp_num_dom = %s, resp_piso_dom = %s, resp_dpto_dom = %s, resp_localidad_dom = %s,
-               resp_cp_dom = %s, resp_te_dom = %s, obra_social = %s, num_afiliado = %s, enfermedad = %s,
-                enf_cual = %s, internado = %s, int_por = %s, alergia = %s, alergia_man = %s, alergia_trat = %s,
-                 tratamiento = %s, trat_espec = %s, quirurgico = %s, quir_edad = %s, quir_tipo = %s,
-                  limitacion = %s, limitacion_aclaracion = %s, otros = %s, institucion = %s,
-                   institucion_dom = %s, institucion_te = %s, medico_apellido = %s, medico_nombres = %s,
-                    medico_te = %s, familiar_apellido = %s, familiar_nombres = %s,
-                     familiar_te = %s WHERE id_alumno = %s''', (apellidos, nombres, sexo, tipo_doc, num_doc,nacionalidad, fecha_nac, lugar_nac, calle_dom, num_dom, piso_dom, dpto_dom, cp_dom, localidad_dom, pcia_dom, tel_dom, estudios, hasta_est, correo, jefe, empleo, resp, resp_esjefe, resp_nombre, resp_nac, resp_profesion, resp_condicion, resp_estudios, resp_hasta_estudios, resp_tipo_doc, resp_num_doc, resp_calle_dom, resp_num_dom, resp_piso_dom, resp_dpto_dom, resp_localidad_dom, resp_cp_dom, resp_te_dom, obra_social, num_afiliado, enfermedad, enf_cual, internado, int_por, alergia, alergia_man, alergia_trat, tratamiento, trat_espec, quirurgico, quir_edad, quir_tipo, limitacion, limitacion_aclaracion, otros, institucion, institucion_dom, institucion_te, medico_apellido, medico_nombres, medico_te, familiar_apellido, familiar_nombres, familiar_te, self.alumno))
+        c.execute('''UPDATE alumnos SET apellidos = ?, nombres = ?, sexo = ?, tipo_doc = ?, num_doc = ?,
+         nacionalidad = ?, fecha_nac = ?, lugar_nac = ?, calle_dom = ?, num_dom = ?, piso_dom = ?,
+          dpto_dom = ?, cp_dom = ?, localidad_dom = ?, pcia_dom = ?, tel_dom = ?, estudios = ?,
+           hasta_est = ?, correo = ?, jefe = ?, empleo = ?, resp = ?, resp_esjefe = ?,
+            resp_nombre = ?, resp_nac = ?, resp_profesion = ?, resp_condicion = ?, resp_estudios = ?,
+             resp_hasta_estudios = ?, resp_tipo_doc = ?, resp_num_doc = ?, resp_calle_dom = ?,
+              resp_num_dom = ?, resp_piso_dom = ?, resp_dpto_dom = ?, resp_localidad_dom = ?,
+               resp_cp_dom = ?, resp_te_dom = ?, obra_social = ?, num_afiliado = ?, enfermedad = ?,
+                enf_cual = ?, internado = ?, int_por = ?, alergia = ?, alergia_man = ?, alergia_trat = ?,
+                 tratamiento = ?, trat_espec = ?, quirurgico = ?, quir_edad = ?, quir_tipo = ?,
+                  limitacion = ?, limitacion_aclaracion = ?, otros = ?, institucion = ?,
+                   institucion_dom = ?, institucion_te = ?, medico_apellido = ?, medico_nombres = ?,
+                    medico_te = ?, familiar_apellido = ?, familiar_nombres = ?,
+                     familiar_te = ? WHERE id_alumno = ?''', (apellidos, nombres, sexo, tipo_doc, num_doc,nacionalidad, fecha_nac, lugar_nac, calle_dom, num_dom, piso_dom, dpto_dom, cp_dom, localidad_dom, pcia_dom, tel_dom, estudios, hasta_est, correo, jefe, empleo, resp, resp_esjefe, resp_nombre, resp_nac, resp_profesion, resp_condicion, resp_estudios, resp_hasta_estudios, resp_tipo_doc, resp_num_doc, resp_calle_dom, resp_num_dom, resp_piso_dom, resp_dpto_dom, resp_localidad_dom, resp_cp_dom, resp_te_dom, obra_social, num_afiliado, enfermedad, enf_cual, internado, int_por, alergia, alergia_man, alergia_trat, tratamiento, trat_espec, quirurgico, quir_edad, quir_tipo, limitacion, limitacion_aclaracion, otros, institucion, institucion_dom, institucion_te, medico_apellido, medico_nombres, medico_te, familiar_apellido, familiar_nombres, familiar_te, self.alumno))
         c.close()
+        self.db.commit()
         wx.MessageBox(u'Tarea realizada con éxito', u'Modificación de Estudiante', wx.OK | wx.ICON_INFORMATION, self)
+        
         self.Close()
         
     def OnCancelar(self, event): # wxGlade: AltaEstudiante.<event_handler>

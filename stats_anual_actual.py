@@ -76,7 +76,7 @@ class MyFrame(wx.Frame):
         index = self.listStats.InsertStringItem(sys.maxint, u'Matrícula')
 
         # Cantidad de alumnos anotados este año
-        c.execute('''SELECT id_curso, num_curso FROM cursos WHERE ciclo = %s;''', (self.anio))
+        c.execute('''SELECT id_curso, num_curso FROM cursos WHERE ciclo = ?;''', (self.anio))
         cursos_totales = c.fetchall()
         if len (cursos_totales) == 0:
             return
@@ -90,7 +90,7 @@ class MyFrame(wx.Frame):
             #print curso[1], len(listado_inicial)
         #listado_inicial = set(listado_inicial)
         for alumno in listado_inicial:
-            c.execute('''SELECT sexo, id_alumno FROM alumnos WHERE id_alumno = %s''' % alumno[0])
+            c.execute('''SELECT sexo, id_alumno FROM alumnos WHERE id_alumno = ?''' % alumno[0])
             cadalum = c.fetchone()
             if cadalum[0] == 'F':
                 chicas_tot += 1
@@ -113,7 +113,7 @@ class MyFrame(wx.Frame):
                 listado_inicial.append(alumno)
             #print curso[1], len(listado_inicial)
         for alumno in listado_inicial:
-            c.execute('''SELECT sexo, id_alumno FROM alumnos WHERE id_alumno = %s''' % alumno[0])
+            c.execute('''SELECT sexo, id_alumno FROM alumnos WHERE id_alumno = ?''' % alumno[0])
             cadalum = c.fetchone()
             if cadalum[0] == 'F':
                 chicas += 1
@@ -143,7 +143,7 @@ class MyFrame(wx.Frame):
         chicas_ar = 0
         chicos_ar = 0
         for alumno in listado_inicial:
-            c.execute('''SELECT sexo, nacionalidad FROM alumnos WHERE id_alumno =%s''' % alumno)
+            c.execute('''SELECT sexo, nacionalidad FROM alumnos WHERE id_alumno =?''' % alumno)
             cadalum = c.fetchone()
             if cadalum[1] == 'AR':
                 if cadalum[0] == 'F':
@@ -186,7 +186,7 @@ class MyFrame(wx.Frame):
         chicas_jefes = 0
         chicos_jefes = 0
         for alumno in listado_inicial:
-            c.execute('''SELECT sexo, jefe FROM alumnos WHERE id_alumno =%s''' % alumno)
+            c.execute('''SELECT sexo, jefe FROM alumnos WHERE id_alumno =?''' % alumno)
             cadalum = c.fetchone()
             if cadalum[1] == 1:
                 if cadalum[0] == 'F':
@@ -215,7 +215,7 @@ class MyFrame(wx.Frame):
         chicas_adolesc = 0
         chicos_adolesc = 0
         for alumno in listado_inicial:
-            c.execute('''SELECT sexo, fecha_nac FROM alumnos WHERE id_alumno =%s''' % alumno)
+            c.execute('''SELECT sexo, fecha_nac FROM alumnos WHERE id_alumno =?''' % alumno)
             cadalum = c.fetchone()
             anio = cadalum[1]
             anio = anio.year
@@ -273,7 +273,7 @@ class MyFrame(wx.Frame):
         chicas_adu = 0
         chicos_adu = 0
         for alumno in listado_inicial:
-            c.execute('''SELECT sexo, fecha_nac FROM alumnos WHERE id_alumno =%s''' % alumno)
+            c.execute('''SELECT sexo, fecha_nac FROM alumnos WHERE id_alumno =?''' % alumno)
             cadalum = c.fetchone()
             anio = cadalum[1]
             anio = anio.year
@@ -309,14 +309,14 @@ class MyFrame(wx.Frame):
             c.execute('''SELECT sexo FROM alumnos WHERE id_alumno = %s''' % alumno)
             cadalum = c.fetchone()
             if cadalum[0] == 'F':
-                c.execute('''SELECT cursando FROM legajo WHERE id_alumno = %s''' % alumno)
+                c.execute('''SELECT cursando FROM legajo WHERE id_alumno = ?''' % alumno)
                 cursadores = c.fetchone()
                 if cursadores == None:
                     pass
                 elif cursadores[0] == 1:
                     chicas_escolariz += 1
             else:
-                c.execute('''SELECT cursando FROM legajo WHERE id_alumno = %s''' % alumno)
+                c.execute('''SELECT cursando FROM legajo WHERE id_alumno = ?''' % alumno)
                 cursadores = c.fetchone()
                 if cursadores == None:
                     pass
@@ -342,17 +342,17 @@ class MyFrame(wx.Frame):
         chicas_aband = 0
         chicos_aband = 0
         for alumno in listado_inicial:
-            c.execute('''SELECT sexo FROM alumnos WHERE id_alumno = %s''' % alumno)
+            c.execute('''SELECT sexo FROM alumnos WHERE id_alumno = ?''' % alumno)
             cadalum = c.fetchone()
             if cadalum[0] == 'F':
-                c.execute('''SELECT abandono FROM legajo WHERE id_alumno = %s''' % alumno)
+                c.execute('''SELECT abandono FROM legajo WHERE id_alumno = ?''' % alumno)
                 cursadores = c.fetchone()
                 if cursadores == None:
                     pass
                 elif cursadores[0] == 1:
                     chicas_aband += 1
             else:
-                c.execute('''SELECT abandono FROM legajo WHERE id_alumno = %s''' % alumno)
+                c.execute('''SELECT abandono FROM legajo WHERE id_alumno = ?''' % alumno)
                 cursadores = c.fetchone()
                 if cursadores == None:
                     pass
@@ -378,17 +378,17 @@ class MyFrame(wx.Frame):
         chicas_fp = 0
         chicos_fp = 0
         for alumno in listado_inicial:
-            c.execute('''SELECT sexo FROM alumnos WHERE id_alumno = %s''' % alumno)
+            c.execute('''SELECT sexo FROM alumnos WHERE id_alumno = ?''' % alumno)
             cadalum = c.fetchone()
             if cadalum[0] == 'F':
-                c.execute('''SELECT otroscursosfp FROM legajo WHERE id_alumno = %s''' % alumno)
+                c.execute('''SELECT otroscursosfp FROM legajo WHERE id_alumno = ?''' % alumno)
                 cursadores = c.fetchone()
                 if cursadores == None:
                     pass
                 elif cursadores[0] == 1:
                     chicas_fp += 1
             else:
-                c.execute('''SELECT otroscursosfp FROM legajo WHERE id_alumno = %s''' % alumno)
+                c.execute('''SELECT otroscursosfp FROM legajo WHERE id_alumno = ?''' % alumno)
                 cursadores = c.fetchone()
                 if cursadores == None:
                     pass
@@ -420,7 +420,7 @@ class MyFrame(wx.Frame):
         chicas_prim_i = 0
         chicos_prim_i = 0
         for alumno in listado_inicial:
-            c.execute('''SELECT sexo, estudios, hasta_est FROM alumnos WHERE id_alumno =%s''' % alumno)
+            c.execute('''SELECT sexo, estudios, hasta_est FROM alumnos WHERE id_alumno =?''' % alumno)
             cadalum = c.fetchone()
             if (cadalum[1] == u'Primarios') and (cadalum[2] == 0):
                 if cadalum[0] == 'F':
@@ -465,7 +465,7 @@ class MyFrame(wx.Frame):
         chicas_sec_i = 0
         chicos_sec_i = 0
         for alumno in listado_inicial:
-            c.execute('''SELECT sexo, estudios, hasta_est FROM alumnos WHERE id_alumno =%s''' % alumno)
+            c.execute('''SELECT sexo, estudios, hasta_est FROM alumnos WHERE id_alumno =?''' % alumno)
             cadalum = c.fetchone()
             if (cadalum[1] == u'Secundarios') and (cadalum[2] == 0):
                 if cadalum[0] == 'F':
@@ -510,7 +510,7 @@ class MyFrame(wx.Frame):
         chicas_terc_i = 0
         chicos_terc_i = 0
         for alumno in listado_inicial:
-            c.execute('''SELECT sexo, estudios, hasta_est FROM alumnos WHERE id_alumno =%s''' % alumno)
+            c.execute('''SELECT sexo, estudios, hasta_est FROM alumnos WHERE id_alumno =?''' % alumno)
             cadalum = c.fetchone()
             if (cadalum[1] == u'Terciarios') and (cadalum[2] == 0):
                 if cadalum[0] == 'F':
@@ -555,7 +555,7 @@ class MyFrame(wx.Frame):
         chicas_univ_i = 0
         chicos_univ_i = 0
         for alumno in listado_inicial:
-            c.execute('''SELECT sexo, estudios, hasta_est FROM alumnos WHERE id_alumno =%s''' % alumno)
+            c.execute('''SELECT sexo, estudios, hasta_est FROM alumnos WHERE id_alumno =?''' % alumno)
             cadalum = c.fetchone()
             if (cadalum[1] == u'Universitarios') and (cadalum[2] == 0):
                 if cadalum[0] == 'F':
@@ -602,17 +602,17 @@ class MyFrame(wx.Frame):
         chicas_ps = 0
         chicos_ps = 0
         for alumno in listado_inicial:
-            c.execute('''SELECT sexo FROM alumnos WHERE id_alumno = %s''' % alumno)
+            c.execute('''SELECT sexo FROM alumnos WHERE id_alumno = ?''' % alumno)
             cadalum = c.fetchone()
             if cadalum[0] == 'F':
-                c.execute('''SELECT plansocial FROM legajo WHERE id_alumno = %s''' % alumno)
+                c.execute('''SELECT plansocial FROM legajo WHERE id_alumno = ?''' % alumno)
                 cursadores = c.fetchone()
                 if cursadores == None:
                     pass
                 elif cursadores[0] == 1:
                     chicas_ps += 1
             else:
-                c.execute('''SELECT plansocial FROM legajo WHERE id_alumno = %s''' % alumno)
+                c.execute('''SELECT plansocial FROM legajo WHERE id_alumno = ?''' % alumno)
                 cursadores = c.fetchone()
                 if cursadores == None:
                     pass
@@ -638,17 +638,17 @@ class MyFrame(wx.Frame):
         chicas_psf = 0
         chicos_psf = 0
         for alumno in listado_inicial:
-            c.execute('''SELECT sexo FROM alumnos WHERE id_alumno = %s''' % alumno)
+            c.execute('''SELECT sexo FROM alumnos WHERE id_alumno = ?''' % alumno)
             cadalum = c.fetchone()
             if cadalum[0] == 'F':
-                c.execute('''SELECT planfamiliar FROM legajo WHERE id_alumno = %s''' % alumno)
+                c.execute('''SELECT planfamiliar FROM legajo WHERE id_alumno = ?''' % alumno)
                 cursadores = c.fetchone()
                 if cursadores == None:
                     pass
                 elif cursadores[0] == 1:
                     chicas_psf += 1
             else:
-                c.execute('''SELECT planfamiliar FROM legajo WHERE id_alumno = %s''' % alumno)
+                c.execute('''SELECT planfamiliar FROM legajo WHERE id_alumno = ?''' % alumno)
                 cursadores = c.fetchone()
                 if cursadores == None:
                     pass
@@ -678,17 +678,17 @@ class MyFrame(wx.Frame):
         chicas_ds = 0
         chicos_ds = 0
         for alumno in listado_inicial:
-            c.execute('''SELECT sexo FROM alumnos WHERE id_alumno = %s''' % alumno)
+            c.execute('''SELECT sexo FROM alumnos WHERE id_alumno = ?''' % alumno)
             cadalum = c.fetchone()
             if cadalum[0] == 'F':
-                c.execute('''SELECT empleo FROM legajo WHERE id_alumno = %s''' % alumno)
+                c.execute('''SELECT empleo FROM legajo WHERE id_alumno = ?''' % alumno)
                 cursadores = c.fetchone()
                 if cursadores == None:
                     pass
                 elif cursadores[0] == 'Desocupado/a':
                     chicas_ds += 1
             else:
-                c.execute('''SELECT empleo FROM legajo WHERE id_alumno = %s''' % alumno)
+                c.execute('''SELECT empleo FROM legajo WHERE id_alumno = ?''' % alumno)
                 cursadores = c.fetchone()
                 if cursadores == None:
                     pass
@@ -714,17 +714,17 @@ class MyFrame(wx.Frame):
         chicas_erd = 0
         chicos_erd = 0
         for alumno in listado_inicial:
-            c.execute('''SELECT sexo FROM alumnos WHERE id_alumno = %s''' % alumno)
+            c.execute('''SELECT sexo FROM alumnos WHERE id_alumno = ?''' % alumno)
             cadalum = c.fetchone()
             if cadalum[0] == 'F':
-                c.execute('''SELECT empleo FROM legajo WHERE id_alumno = %s''' % alumno)
+                c.execute('''SELECT empleo FROM legajo WHERE id_alumno = ?''' % alumno)
                 cursadores = c.fetchone()
                 if cursadores == None:
                     pass
                 elif cursadores[0] == 'Empleado/a  (Rel. dependencia)':
                     chicas_erd += 1
             else:
-                c.execute('''SELECT empleo FROM legajo WHERE id_alumno = %s''' % alumno)
+                c.execute('''SELECT empleo FROM legajo WHERE id_alumno = ?''' % alumno)
                 cursadores = c.fetchone()
                 if cursadores == None:
                     pass
@@ -750,17 +750,17 @@ class MyFrame(wx.Frame):
         chicas_ec = 0
         chicos_ec = 0
         for alumno in listado_inicial:
-            c.execute('''SELECT sexo FROM alumnos WHERE id_alumno = %s''' % alumno)
+            c.execute('''SELECT sexo FROM alumnos WHERE id_alumno = ?''' % alumno)
             cadalum = c.fetchone()
             if cadalum[0] == 'F':
-                c.execute('''SELECT empleo FROM legajo WHERE id_alumno = %s''' % alumno)
+                c.execute('''SELECT empleo FROM legajo WHERE id_alumno = ?''' % alumno)
                 cursadores = c.fetchone()
                 if cursadores == None:
                     pass
                 elif cursadores[0] == u'Empleado/a (Contrato a término)':
                     chicas_ec += 1
             else:
-                c.execute('''SELECT empleo FROM legajo WHERE id_alumno = %s''' % alumno)
+                c.execute('''SELECT empleo FROM legajo WHERE id_alumno = ?''' % alumno)
                 cursadores = c.fetchone()
                 if cursadores == None:
                     pass
@@ -786,17 +786,17 @@ class MyFrame(wx.Frame):
         chicas_inf = 0
         chicos_inf = 0
         for alumno in listado_inicial:
-            c.execute('''SELECT sexo FROM alumnos WHERE id_alumno = %s''' % alumno)
+            c.execute('''SELECT sexo FROM alumnos WHERE id_alumno = ?''' % alumno)
             cadalum = c.fetchone()
             if cadalum[0] == 'F':
-                c.execute('''SELECT empleo FROM legajo WHERE id_alumno = %s''' % alumno)
+                c.execute('''SELECT empleo FROM legajo WHERE id_alumno = ?''' % alumno)
                 cursadores = c.fetchone()
                 if cursadores == None:
                     pass
                 elif cursadores[0] == u'Empleado/a  (Informal)':
                     chicas_inf += 1
             else:
-                c.execute('''SELECT empleo FROM legajo WHERE id_alumno = %s''' % alumno)
+                c.execute('''SELECT empleo FROM legajo WHERE id_alumno = ?''' % alumno)
                 cursadores = c.fetchone()
                 if cursadores == None:
                     pass
@@ -822,17 +822,17 @@ class MyFrame(wx.Frame):
         chicas_cha = 0
         chicos_cha = 0
         for alumno in listado_inicial:
-            c.execute('''SELECT sexo FROM alumnos WHERE id_alumno = %s''' % alumno)
+            c.execute('''SELECT sexo FROM alumnos WHERE id_alumno = ?''' % alumno)
             cadalum = c.fetchone()
             if cadalum[0] == 'F':
-                c.execute('''SELECT empleo FROM legajo WHERE id_alumno = %s''' % alumno)
+                c.execute('''SELECT empleo FROM legajo WHERE id_alumno = ?''' % alumno)
                 cursadores = c.fetchone()
                 if cursadores == None:
                     pass
                 elif cursadores[0] == u'Changarín':
                     chicas_cha += 1
             else:
-                c.execute('''SELECT empleo FROM legajo WHERE id_alumno = %s''' % alumno)
+                c.execute('''SELECT empleo FROM legajo WHERE id_alumno = ?''' % alumno)
                 cursadores = c.fetchone()
                 if cursadores == None:
                     pass
@@ -858,17 +858,17 @@ class MyFrame(wx.Frame):
         chicas_cp = 0
         chicos_cp = 0
         for alumno in listado_inicial:
-            c.execute('''SELECT sexo FROM alumnos WHERE id_alumno = %s''' % alumno)
+            c.execute('''SELECT sexo FROM alumnos WHERE id_alumno = ?''' % alumno)
             cadalum = c.fetchone()
             if cadalum[0] == 'F':
-                c.execute('''SELECT empleo FROM legajo WHERE id_alumno = %s''' % alumno)
+                c.execute('''SELECT empleo FROM legajo WHERE id_alumno = ?''' % alumno)
                 cursadores = c.fetchone()
                 if cursadores == None:
                     pass
                 elif cursadores[0] == u'Cuentapropista':
                     chicas_cp += 1
             else:
-                c.execute('''SELECT empleo FROM legajo WHERE id_alumno = %s''' % alumno)
+                c.execute('''SELECT empleo FROM legajo WHERE id_alumno = ?''' % alumno)
                 cursadores = c.fetchone()
                 if cursadores == None:
                     pass
@@ -894,17 +894,17 @@ class MyFrame(wx.Frame):
         chicas_emp = 0
         chicos_emp = 0
         for alumno in listado_inicial:
-            c.execute('''SELECT sexo FROM alumnos WHERE id_alumno = %s''' % alumno)
+            c.execute('''SELECT sexo FROM alumnos WHERE id_alumno = ?''' % alumno)
             cadalum = c.fetchone()
             if cadalum[0] == 'F':
-                c.execute('''SELECT empleo FROM legajo WHERE id_alumno = %s''' % alumno)
+                c.execute('''SELECT empleo FROM legajo WHERE id_alumno = ?''' % alumno)
                 cursadores = c.fetchone()
                 if cursadores == None:
                     pass
                 elif cursadores[0] == u'Empresario/a':
                     chicas_emp += 1
             else:
-                c.execute('''SELECT empleo FROM legajo WHERE id_alumno = %s''' % alumno)
+                c.execute('''SELECT empleo FROM legajo WHERE id_alumno = ?''' % alumno)
                 cursadores = c.fetchone()
                 if cursadores == None:
                     pass
@@ -930,17 +930,17 @@ class MyFrame(wx.Frame):
         chicas_com = 0
         chicos_com = 0
         for alumno in listado_inicial:
-            c.execute('''SELECT sexo FROM alumnos WHERE id_alumno = %s''' % alumno)
+            c.execute('''SELECT sexo FROM alumnos WHERE id_alumno = ?''' % alumno)
             cadalum = c.fetchone()
             if cadalum[0] == 'F':
-                c.execute('''SELECT empleo FROM legajo WHERE id_alumno = %s''' % alumno)
+                c.execute('''SELECT empleo FROM legajo WHERE id_alumno = ?''' % alumno)
                 cursadores = c.fetchone()
                 if cursadores == None:
                     pass
                 elif cursadores[0] == u'Comerciante':
                     chicas_com += 1
             else:
-                c.execute('''SELECT empleo FROM legajo WHERE id_alumno = %s''' % alumno)
+                c.execute('''SELECT empleo FROM legajo WHERE id_alumno = ?''' % alumno)
                 cursadores = c.fetchone()
                 if cursadores == None:
                     pass
@@ -966,17 +966,17 @@ class MyFrame(wx.Frame):
         chicas_ecf = 0
         chicos_ecf = 0
         for alumno in listado_inicial:
-            c.execute('''SELECT sexo FROM alumnos WHERE id_alumno = %s''' % alumno)
+            c.execute('''SELECT sexo FROM alumnos WHERE id_alumno = ?''' % alumno)
             cadalum = c.fetchone()
             if cadalum[0] == 'F':
-                c.execute('''SELECT empleo FROM legajo WHERE id_alumno = %s''' % alumno)
+                c.execute('''SELECT empleo FROM legajo WHERE id_alumno = ?''' % alumno)
                 cursadores = c.fetchone()
                 if cursadores == None:
                     pass
                 elif cursadores[0] == u'Empleado/a casa de familia':
                     chicas_ecf += 1
             else:
-                c.execute('''SELECT empleo FROM legajo WHERE id_alumno = %s''' % alumno)
+                c.execute('''SELECT empleo FROM legajo WHERE id_alumno = ?''' % alumno)
                 cursadores = c.fetchone()
                 if cursadores == None:
                     pass
@@ -1002,17 +1002,17 @@ class MyFrame(wx.Frame):
         chicas_jub = 0
         chicos_jub = 0
         for alumno in listado_inicial:
-            c.execute('''SELECT sexo FROM alumnos WHERE id_alumno = %s''' % alumno)
+            c.execute('''SELECT sexo FROM alumnos WHERE id_alumno = ?''' % alumno)
             cadalum = c.fetchone()
             if cadalum[0] == 'F':
-                c.execute('''SELECT empleo FROM legajo WHERE id_alumno = %s''' % alumno)
+                c.execute('''SELECT empleo FROM legajo WHERE id_alumno = ?''' % alumno)
                 cursadores = c.fetchone()
                 if cursadores == None:
                     pass
                 elif cursadores[0] == u'Jubilado/a':
                     chicas_jub += 1
             else:
-                c.execute('''SELECT empleo FROM legajo WHERE id_alumno = %s''' % alumno)
+                c.execute('''SELECT empleo FROM legajo WHERE id_alumno = ?''' % alumno)
                 cursadores = c.fetchone()
                 if cursadores == None:
                     pass

@@ -25,15 +25,17 @@
 ##############################################################################
 
 import wx
-import MySQLdb
 
 # begin wxGlade: extracode
 # end wxGlade
 
-
 class ModEstudiante(wx.Frame):
     def __init__(self, alumno, *args, **kwds):
-        self.db = MySQLdb.connect('localhost', 'javier', 'javier', 'escuela', charset='UTF8')
+        archivoBBDD = "sancabase2.db"
+        bbdd = archivoBBDD
+        import sqlite3 as sql3
+        self.db = sql3.connect(bbdd)
+        
         kwds["style"] = wx.DEFAULT_FRAME_STYLE
         wx.Frame.__init__(self, *args, **kwds)
         self.alumno = alumno
@@ -311,7 +313,7 @@ class ModEstudiante(wx.Frame):
         ###########
         #Precarga
         c = self.db.cursor()
-        c.execute('''SELECT * FROM alumnos WHERE id_alumno = %s''' % self.alumno)
+        c.execute('''SELECT * FROM alumnos WHERE id_alumno = ?''', (self.alumno,))
         qr = c.fetchone()
         c.close()
         q = []
@@ -328,9 +330,9 @@ class ModEstudiante(wx.Frame):
         self.combo_box_nacionalidad.SetValue(u'%s' % q[6])
         # rearmar la fecha porque viene diferente desde la db
         nac = q[7]
-        dia = nac.day
-        mes = nac.month
-        anio = nac.year
+        dia = int(nac[8:10])
+        mes = int(nac[5:7])
+        anio = int(nac[0:4])
         nacimiento = wx.DateTimeFromDMY(dia,mes-1,anio)
         self.datepicker_fechanac.SetValue(nacimiento)
         self.text_ctrl_lugarnac.SetValue(u'%s' % q[8])

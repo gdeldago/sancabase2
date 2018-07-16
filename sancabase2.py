@@ -28,12 +28,10 @@
 import wx
 import sys
 import os
-##import MySQLdb
-##Se utilizará SQLite para realizar un trabajo local más rapido
+import sqlite3 as sql3
 import wx.lib.mixins.listctrl
 import pickle
 import imp
-#import wx.gizmos as gizmos
 from os import system
 
 # Clase App
@@ -46,11 +44,11 @@ class App(wx.App):
         wx.SPLASH_TIMEOUT,3000,None,-1)
         wx.Yield()
         # Fin splash screen
-        frame = Frame(u'SancaBase2 - Gestión de entornos educativos',(30,30),(800,600))
+        frame = Frame(u'Sancabase2 - Gestión de entornos educativos',(30,30),(800,600))
         frame.CenterOnScreen()
         frame.Show()
         self.SetTopWindow(frame)
-            
+
         return True
 
 # Clase Frame
@@ -58,7 +56,7 @@ class Frame(wx.Frame):
     def __init__(self,title,pos,size):
         wx.Frame.__init__(self,None,-1,title,pos,size)
         panel = wx.Panel(self)
-      
+        self.db = sql3.connect("sancabase2.db")
 
 # Menúes
         menuBar = wx.MenuBar()
@@ -231,7 +229,6 @@ class Frame(wx.Frame):
 
 # Salir
     def OnExit(self,evt):
-    
         self.Close()
 
 # Actualizar
@@ -260,12 +257,12 @@ class Frame(wx.Frame):
                 salida.SetValue(unicode.encode(texto,"utf-8"))
                 boton = wx.Button(panel,-1,u'Salir',pos = (180,160))
                 self.Bind(wx.EVT_BUTTON,self.OnCancelar,boton)
-                
+
             else:
                 self.frame.Destroy()
                 wx.MessageBox(u'No se pudo conectar con el servidor - Compruebe la conexión a internet y pruebe nuevamente',u'Actualización automática',wx.OK | wx.ICON_ERROR,self)
-                
-            
+
+
 # Exportar base de datos
     def OnExportar(self,evt):
         try:
@@ -285,7 +282,7 @@ class Frame(wx.Frame):
             wx.MessageBox(u'Tarea realizada con éxito',u'Backup de la base de datos',
              wx.OK | wx.ICON_INFORMATION,self)
             return True
-            
+
 # Resguardo completo de datos
     def OnResguardo(self,evt):
         try:
@@ -305,7 +302,7 @@ class Frame(wx.Frame):
             self.frame.CenterOnScreen()
             self.frame.Show(True)
             return True
-            
+
 
 # Alta de cursos
     def OnAltaCurso(self,evt):
@@ -405,7 +402,7 @@ class Frame(wx.Frame):
     def OnSetEspecialidades(self,evt):
         especialidad = self.especialidad.GetValue()
         c = self.db.cursor()
-        c.execute('''SELECT tipo,duracion FROM especialidades WHERE denominacion = %s''',(especialidad))
+        c.execute('''SELECT tipo,duracion FROM especialidades WHERE denominacion = ?''',(especialidad))
         q = c.fetchall()
         c.close()
         tipo = q[0][0]
@@ -443,11 +440,12 @@ class Frame(wx.Frame):
         # Asigno los alumnos creando una tabla con el número de curso y la lleno
             if (dlg.ShowModal() == wx.ID_OK):
                 selections = dlg.GetSelections()
-                c.execute('''CREATE TABLE curso_%s (`id_alumno` VARCHAR(11) NOT NULL,`abandono` BOOL NOT NULL  DEFAULT '0',`dia` DATE NULL,`causa` TINYTEXT NULL,PRIMARY KEY (`id_alumno`))'''% str(self.num_curso))
+                c.execute('''CREATE TABLE {curso} (`id_alumno` VARCHAR(11) NOT NULL,`abandono` BOOL NOT NULL  DEFAULT '0',`dia` DATE NULL,`causa` TINYTEXT NULL,PRIMARY KEY (`id_alumno`))'''.format(curso="curso_" + self.num_curso))
                 for x in selections:
                     id_alumno = q[x][0]
-                    c.execute('''INSERT INTO curso_%s (id_alumno) VALUES (%s)'''% (str(self.num_curso),id_alumno))
-                c.execute('''INSERT INTO cursos (num_curso,tipo,especialidad,instructor,ciclo,fecha_inicio,fecha_final,horas,establecimiento,horario) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)''', (self.num_curso,tipo,especialidad,instructor,ciclo,fecha_inicio,fecha_final,horas,establecimiento,horario))
+                    c.execute('''INSERT INTO {curso} (id_alumno) VALUES ({alumno})'''.format(curso="curso_" + self.num_curso, alumno=id_alumno))
+                c.execute('''INSERT INTO cursos (num_curso,tipo,especialidad,instructor,ciclo,fecha_inicio,fecha_final,horas,establecimiento,horario) VALUES (?,?,?,?,?,?,?,?,?,?)''', (self.num_curso,tipo,especialidad,instructor,ciclo,fecha_inicio,fecha_final,horas,establecimiento,horario))
+                self.db.commit()
                 wx.MessageBox(u'Tarea realizada con éxito',u'Alta de Curso %s' % self.num_curso,wx.OK | wx.ICON_INFORMATION,self)
         # Si me echo atrás mato todo
             else:
@@ -455,10 +453,10 @@ class Frame(wx.Frame):
                 self.frame.Close()
         # Si no asigné alumnos creo el curso y una tabla vacía con el número del mismo
         else:
-            c.execute('''CREATE TABLE curso_%s (`id_alumno` VARCHAR(11) NOT NULL,`abandono` BOOL NOT NULL  DEFAULT '0',`dia` DATE NULL,`causa` TINYTEXT NULL,PRIMARY KEY (`id_alumno`));'''% str(self.num_curso))
-            c.execute('''INSERT INTO cursos (num_curso,tipo,especialidad,instructor,ciclo,fecha_inicio,fecha_final,horas,establecimiento) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s);''',(self.num_curso,tipo,especialidad,instructor,ciclo,fecha_inicio,fecha_final,horas,establecimiento))
-            wx.MessageBox(u'Tarea realizada con éxito',u'Alta de Curso %s' % self.num_curso,
-             wx.OK | wx.ICON_INFORMATION,self)
+            c.execute('''CREATE TABLE {curso} (`id_alumno` VARCHAR(11) NOT NULL,`abandono` BOOL NOT NULL  DEFAULT '0',`dia` DATE NULL,`causa` TINYTEXT NULL,PRIMARY KEY (`id_alumno`))'''.format(curso="curso_" + self.num_curso))
+            c.execute('''INSERT INTO cursos (num_curso,tipo,especialidad,instructor,ciclo,fecha_inicio,fecha_final,horas,establecimiento,horario) VALUES (?,?,?,?,?,?,?,?,?,?)''',(self.num_curso,tipo,especialidad,instructor,ciclo,fecha_inicio,fecha_final,horas,establecimiento,horario))
+            self.db.commit()
+            wx.MessageBox(u'Tarea realizada con éxito',u'Alta de Curso %s' % self.num_curso, wx.OK | wx.ICON_INFORMATION,self)
         c.close()
         self.frame.Close()
 
@@ -535,7 +533,8 @@ class Frame(wx.Frame):
         celular = self.celular.GetValue()
         correo = self.correo.GetValue()
         c = self.db.cursor()
-        c.execute('''INSERT INTO instructores (apellidos,nombres,calle,numero,localidad,te_contacto,celular,correo) VALUES (%s,%s,%s,%s,%s,%s,%s,%s)''', (apellidos,nombres,calle,numero,localidad,telefono,celular,correo,))
+        c.execute('''INSERT INTO instructores (apellidos,nombres,calle,numero,localidad,te_contacto,celular,correo) VALUES (?,?,?,?,?,?,?,?)''', (apellidos,nombres,calle,numero,localidad,telefono,celular,correo,))
+        self.db.commit()
         wx.MessageBox(u'Tarea realizada con éxito',u'Alta de Instructor/a ',wx.OK | wx.ICON_INFORMATION,self)
         c.close()
         self.frame.Close()
@@ -614,10 +613,15 @@ class Frame(wx.Frame):
         telefono = self.telefono.GetValue()
         celular = self.celular.GetValue()
         correo = self.correo.GetValue()
-        c = self.db.cursor()
-        c.execute('''INSERT INTO coordinadores (apellidos,nombres,calle,numero,localidad,te_contacto,celular,correo) VALUES (%s,%s,%s,%s,%s,%s,%s,%s)''', (apellidos,nombres,calle,numero,localidad,telefono,celular,correo,))
-        wx.MessageBox(u'Tarea realizada con éxito',u'Alta de Coordinador/a ',wx.OK | wx.ICON_INFORMATION,self)
-        c.close()
+        try:
+            c = self.db.cursor()
+            c.execute('''INSERT INTO coordinadores (apellidos,nombres,calle,numero,localidad,te_contacto,celular,correo) VALUES (?,?,?,?,?,?,?,?)''', (apellidos,nombres,calle,numero,localidad,telefono,celular,correo,))
+            self.db.commit()
+            wx.MessageBox(u'Tarea realizada con éxito',u'Alta de Coordinador/a ',wx.OK | wx.ICON_INFORMATION,self)
+        except:
+            wx.MessageBox(u'No se pudo realizar la tarea',u'Alta de Coordinador/a ', wx.ICON_ERROR, self)
+        finally:
+            c.close()
         self.frame.Close()
 
 
@@ -705,10 +709,15 @@ class Frame(wx.Frame):
         correo = self.correo.GetValue()
         site = self.site.GetValue()
         coordinador = self.coordinador.GetValue()
-        c = self.db.cursor()
-        c.execute('''INSERT INTO establecimientos (nombre,calle,num_puerta,localidad,cp,telefono,correo,site,coordinador) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)''', (escuela,calle,numero,localidad,codigo,telefono,correo,site,coordinador))
-        wx.MessageBox(u'Tarea realizada con éxito',u'Alta de Centro ',wx.OK | wx.ICON_INFORMATION,self)
-        c.close()
+        try:
+            c = self.db.cursor()
+            c.execute('''INSERT INTO establecimientos (nombre,calle,num_puerta,localidad,cp,telefono,correo,site,coordinador) VALUES (?,?,?,?,?,?,?,?,?)''', (escuela,calle,numero,localidad,codigo,telefono,correo,site,coordinador))
+            self.db.commit()
+            wx.MessageBox(u'Tarea realizada con éxito',u'Alta de Centro ',wx.OK | wx.ICON_INFORMATION,self)
+        except:
+            wx.MessageBox(u'No se pudo realizar la tarea',u'Alta de Centro ', wx.ICON_ERROR, self)
+        finally:
+            c.close()
         self.frame.Close()
 
 
@@ -790,10 +799,15 @@ class Frame(wx.Frame):
         telefono = self.telefono.GetValue()
         celular = self.celular.GetValue()
         correo = self.correo.GetValue()
-        c = self.db.cursor()
-        c.execute('''INSERT INTO administrativos (cargo,apellidos,nombres,calle,numero,localidad,telefono,celular,correo) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)''', (cargo,apellidos,nombres,calle,numero,localidad,telefono,celular,correo))
-        wx.MessageBox(u'Tarea realizada con éxito',u'Alta de Administrativo/a ',wx.OK | wx.ICON_INFORMATION,self)
-        c.close()
+        try:
+            c = self.db.cursor()
+            c.execute('''INSERT INTO administrativos (cargo,apellidos,nombres,calle,numero,localidad,telefono,celular,correo) VALUES (?,?,?,?,?,?,?,?,?)''', (cargo,apellidos,nombres,calle,numero,localidad,telefono,celular,correo))
+            self.db.commit()
+            wx.MessageBox(u'Tarea realizada con éxito',u'Alta de Administrativo/a ',wx.OK | wx.ICON_INFORMATION,self)
+        except:
+            wx.MessageBox(u'No se pudo realizar la tarea',u'Alta de Administrativo/a ', wx.ICON_ERROR, self)
+        finally:
+            c.close()
         self.frame.Close()
 
 
@@ -881,10 +895,15 @@ class Frame(wx.Frame):
         correo = self.correo.GetValue()
         dia = self.fechaInicio.GetValue()
         inicio = ('%04d/%02d/%02d' % (dia.GetYear(),dia.GetMonth()+1,dia.GetDay()))
-        c = self.db.cursor()
-        c.execute('''INSERT INTO auxiliares (cargo,apellidos,nombres,calle,numero,localidad,telefono,dni,correo,inicio) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)''', (cargo,apellidos,nombres,calle,numero,localidad,telefono,doc,correo,inicio))
-        wx.MessageBox(u'Tarea realizada con éxito',u'Alta de Auxiliar ',wx.OK | wx.ICON_INFORMATION,self)
-        c.close()
+        try:        
+            c = self.db.cursor()
+            c.execute('''INSERT INTO auxiliares (cargo,apellidos,nombres,calle,numero,localidad,telefono,dni,correo,inicio) VALUES (?,?,?,?,?,?,?,?,?,?)''', (cargo,apellidos,nombres,calle,numero,localidad,telefono,doc,correo,inicio))
+            self.db.commit()
+            wx.MessageBox(u'Tarea realizada con éxito',u'Alta de Auxiliar ',wx.OK | wx.ICON_INFORMATION,self)
+        except:
+            wx.MessageBox(u'No se pudo realizar la tarea',u'Alta de Auxiliar ', wx.ICON_ERROR, self)
+        finally:
+            c.close()
         self.frame.Close()
 
 
@@ -903,7 +922,7 @@ class Frame(wx.Frame):
             self.dialog.Destroy()
             # Creo el diálogo para seleccionar entre todos los que tienen el mismo apellido
             c = self.db.cursor()
-            c.execute('''SELECT id_alumno,apellidos,nombres,num_doc FROM alumnos WHERE apellidos = %s''',(self.apellido))
+            c.execute('''SELECT id_alumno,apellidos,nombres,num_doc FROM alumnos WHERE apellidos = ?''',(self.apellido))
             q = c.fetchall()
             c.close()
             StrAlum = [("%d %s %s %s" % tuple(a)) for a in q]
@@ -995,10 +1014,16 @@ class Frame(wx.Frame):
         correo = self.correo.GetValue()
         site = self.site.GetValue()
         c = self.db.cursor()
-        c.execute('''TRUNCATE table miescuela''')
-        c.execute('''INSERT INTO miescuela (nombre,calle,numpuerta,localidad,cp,telefono,correo,site) VALUES (%s,%s,%s,%s,%s,%s,%s,%s)''', (escuela,calle,numero,localidad,codigo,telefono,correo,site))
-        wx.MessageBox(u'Tarea realizada con éxito',u'Alta de Institución ',wx.OK | wx.ICON_INFORMATION,self)
-        c.close()
+        #SQLITE no tiene la sentencia TRUNCATE c.execute('''TRUNCATE table miescuela''')
+        c.execute('''DELETE FROM miescuela''')
+        try:
+            c.execute('''INSERT INTO miescuela (nombre,calle,numpuerta,localidad,cp,telefono,correo,site) VALUES (?,?,?,?,?,?,?,?)''', (escuela,calle,numero,localidad,codigo,telefono,correo,site))
+            self.db.commit()
+            wx.MessageBox(u'Tarea realizada con éxito',u'Alta de Institución ',wx.OK | wx.ICON_INFORMATION,self.frame)
+        except:
+            wx.MessageBox(u'No se pudo realizar la tarea',u'Alta de Institución ', wx.ICON_ERROR, self)
+        finally:
+            c.close()
         self.frame.Close()
 
 
@@ -1080,10 +1105,16 @@ class Frame(wx.Frame):
             tipo = u'i'
             debe = 0
         c = self.db.cursor()
-        c.execute('''INSERT INTO gastos (fecha,tipo,comprobante,responsable,destino,debe,haber) VALUES (%s,%s,%s,%s,%s,%s,%s);''',(fecha,tipo,comprobante,responsable,destino,debe,haber))
-        wx.MessageBox(u'Tarea realizada con éxito',u'Ingreso de movimiento de caja',
-        wx.OK | wx.ICON_INFORMATION,self)
-        c.close()
+        try:
+            c.execute('''INSERT INTO gastos (fecha,tipo,comprobante,responsable,destino,debe,haber) VALUES (?,?,?,?,?,?,?);''',(fecha,tipo,comprobante,responsable,destino,debe,haber))
+            self.db.commit()
+            wx.MessageBox(u'Tarea realizada con éxito',u'Ingreso de movimiento de caja',
+                          wx.OK | wx.ICON_INFORMATION,self)
+            
+        except:
+            wx.MessageBox(u'No se pudo realizar la tarea',u'Ingreso de movimiento de caja ', wx.ICON_ERROR, self)
+        finally:
+            c.close()
         self.frame.Close()
 
 # Listado de gastos por fecha
@@ -1132,7 +1163,7 @@ class Frame(wx.Frame):
         hasta = ('%04d/%02d/%02d' % (dia.GetYear(),dia.GetMonth()+1,dia.GetDay()))
         self.frame.Destroy()
         c = self.db.cursor()
-        c.execute('''SELECT * from gastos WHERE %s<fecha AND fecha<%s ORDER BY fecha asc''',(desde,hasta))
+        c.execute('''SELECT * from gastos WHERE ?<fecha AND fecha<? ORDER BY fecha asc''',(desde,hasta))
         listado = c.fetchall()
         c.close()
         f = open('./py/movporfecha.py','w')
@@ -1213,7 +1244,7 @@ class Frame(wx.Frame):
         destino = self.destino.GetValue()
         self.frame.Destroy()
         c = self.db.cursor()
-        c.execute('''SELECT * from gastos WHERE destino = %s ORDER BY fecha asc''',(destino))
+        c.execute('''SELECT * from gastos WHERE destino = ? ORDER BY fecha asc''',(destino))
         listado = c.fetchall()
         c.close()
         f = open('./py/movpordestino.py','w')
@@ -1294,7 +1325,7 @@ class Frame(wx.Frame):
         responsable = self.responsable.GetValue()
         self.frame.Destroy()
         c = self.db.cursor()
-        c.execute('''SELECT * from gastos WHERE responsable = %s ORDER BY fecha asc''',(responsable))
+        c.execute('''SELECT * from gastos WHERE responsable = ? ORDER BY fecha asc''',(responsable))
         listado = c.fetchall()
         c.close()
         f = open('./py/movporresponsable.py','w')
@@ -1343,7 +1374,7 @@ class Frame(wx.Frame):
             self.dialog.Destroy()
             # Creo el diálogo para seleccionar entre todos los que tienen el mismo apellido
             c = self.db.cursor()
-            c.execute('''SELECT id_alumno,apellidos,nombres,num_doc FROM alumnos WHERE apellidos = %s''',(self.apellido))
+            c.execute('''SELECT id_alumno, apellidos, nombres, num_doc FROM alumnos WHERE apellidos LIKE ?''', (self.apellido,))
             q = c.fetchall()
             StrAlum = [("%d %s %s %s" % tuple(a)) for a in q]
             dlg = wx.SingleChoiceDialog(self,u'Estudiantes que cumplen el criterio de búsqueda:',u'Modificación de estudiantes',StrAlum)
@@ -1356,7 +1387,7 @@ class Frame(wx.Frame):
                 import modalumno
                 reload(modalumno)
                 modalumno.ModEstudiante(self)
-                
+
                 return True
 
 # Modificación de Cursos
@@ -1425,7 +1456,7 @@ class Frame(wx.Frame):
                 topLbl = wx.StaticText(panel,-1,u'Modificación de Curso %s' % numCurso)
                 topLbl.SetFont(wx.Font(18,wx.SWISS,wx.NORMAL,wx.BOLD))
                 c = self.db.cursor()
-                c.execute('''SELECT * from cursos WHERE num_curso = %s ''',numCurso)
+                c.execute('''SELECT * from cursos WHERE num_curso = ? ''',(numCurso,))
                 q = c.fetchone()
                 self.id_curso = q[0]
                 cursoLbl = wx.StaticText(panel,-1,u'Curso N°:')
@@ -1452,17 +1483,17 @@ class Frame(wx.Frame):
                 comienzoLbl = wx.StaticText(panel,-1,u'Fecha de inicio:')
                 self.comienzo = wx.DatePickerCtrl(panel,-1,size=(120,-1),style=wx.DP_DROPDOWN | wx.DP_SHOWCENTURY)
                 com = q[6]
-                dia = com.day
-                mes = com.month
-                anio = com.year
+                dia = int(com[8:10])
+                mes = int(com[5:7])
+                anio = int(com[0:4])
                 comienzo = wx.DateTimeFromDMY(dia,mes-1,anio)
                 self.comienzo.SetValue(comienzo)
                 finalLbl = wx.StaticText(panel,-1,u'Fecha de finalización:')
                 self.final = wx.DatePickerCtrl(panel,-1,size=(120,-1),style=wx.DP_DROPDOWN | wx.DP_SHOWCENTURY)
                 fin = q[7]
-                dia = fin.day
-                mes = fin.month
-                anio = fin.year
+                dia = int(fin[8:10])
+                mes = int(fin[5:7])
+                anio = int(fin[0:4])
                 final = wx.DateTimeFromDMY(dia,mes-1,anio)
                 self.final.SetValue(final)
                 horasLbl = wx.StaticText(panel,-1,u'Horas reloj')
@@ -1528,11 +1559,11 @@ class Frame(wx.Frame):
                 ListAlum = []
                 for alumno in q:
                     c.execute('''SELECT id_alumno,apellidos,nombres,
-                     num_doc FROM alumnos WHERE id_alumno = %s''',alumno)
+                     num_doc FROM alumnos WHERE id_alumno = ?''',alumno)
                     r = c.fetchone()
                     #StrAlum = [("%d %s %s %s" % tuple(a)) for a in r]
                     ListAlum.append(str(r))
-                c.close()    
+                c.close()
                 #ListAlum = [(u'%s' % tuple(a)) for a in q]
                 self.dlg = wx.Frame(self,-1,u"Edición de estudiantes",size=(450,400))
                 self.dlg.CenterOnScreen()
@@ -1572,9 +1603,14 @@ class Frame(wx.Frame):
             centro = self.centro.GetValue()
             horario = self.horario.GetValue()
             c = self.db.cursor()
-            c.execute(''' UPDATE cursos SET num_curso = %s,tipo = %s,especialidad = %s,instructor = %s,fecha_inicio = %s,ciclo = %s,fecha_final = %s,horas = %s,horario = %s,establecimiento = %s WHERE id_curso = %s''',(num_curso,tipo,especialidad,instructor,comienzo,ciclo,final,horas,horario,centro,self.id_curso))
-            wx.MessageBox(u'Tarea realizada con éxito',u'Modificación de Curso ID: %s' % self.id_curso,wx.OK | wx.ICON_INFORMATION,self)
-            c.close()
+            try:
+                c.execute(''' UPDATE cursos SET num_curso = ?,tipo = ?,especialidad = ?,instructor = ?,fecha_inicio = ?,ciclo = ?,fecha_final = ?,horas = ?,horario = ?,establecimiento = ? WHERE id_curso = ?''',(num_curso,tipo,especialidad,instructor,comienzo,ciclo,final,horas,horario,centro,self.id_curso))
+                self.db.commit()
+                wx.MessageBox(u'Tarea realizada con éxito',u'Modificación de Curso ID: %s' % self.id_curso,wx.OK | wx.ICON_INFORMATION,self)
+            except:
+                wx.MessageBox(u'No se pudo realizar la tarea',u'Alta de Coordinador/a ', wx.ICON_ERROR, self)
+            finally:
+                c.close()
             self.frame.Destroy()
 
 # Modificación de alumnos dentro del curso
@@ -1589,6 +1625,7 @@ class Frame(wx.Frame):
             for alumno in a:
                 c.execute('''INSERT INTO `curso_%s` VALUES (%s,0,null,null)''',
                  (int(self.numcurso),int(alumno)))
+                self.db.commit()
             c.close()
 
 # Modificación de Instructores
@@ -1604,7 +1641,7 @@ class Frame(wx.Frame):
             if (dlg.ShowModal() == wx.ID_OK):
                 selections = dlg.GetSelection()
                 self.instAmodificar = q[selections][0]
-                c. execute('''SELECT * FROM instructores WHERE id_instructor = %s''',(self.instAmodificar))
+                c. execute('''SELECT * FROM instructores WHERE id_instructor = ?''',(self.instAmodificar,))
                 q = c.fetchall()
                 c.close()
                 self.frame = wx.Frame(self,-1,u'Modificación de Instructor/a %s' % q[0][1],size=(500,350))
@@ -1683,10 +1720,15 @@ class Frame(wx.Frame):
         telefono = self.telefono.GetValue()
         celular = self.celular.GetValue()
         correo = self.correo.GetValue()
-        c = self.db.cursor()
-        c.execute("""UPDATE instructores SET apellidos = %s,nombres = %s,calle = %s,numero = %s,localidad = %s,te_contacto = %s,celular = %s,correo = %s WHERE id_instructor = %s""",(apellidos,nombres,calle,numero,localidad,telefono,celular,correo,self.instAmodificar))
-        wx.MessageBox(u'Tarea realizada con éxito',u'Modificación de Instructor/a %s' % apellidos,wx.OK | wx.ICON_INFORMATION,self)
-        c.close()
+        try:
+            c = self.db.cursor()
+            c.execute("""UPDATE instructores SET apellidos = ?,nombres = ?,calle = ?,numero = ?,localidad = ?,te_contacto = ?,celular = ?,correo = ? WHERE id_instructor = ?""",(apellidos,nombres,calle,numero,localidad,telefono,celular,correo,self.instAmodificar))
+            self.db.commit()
+            wx.MessageBox(u'Tarea realizada con éxito',u'Modificación de Instructor/a %s' % apellidos,wx.OK | wx.ICON_INFORMATION,self)
+        except:
+            wx.MessageBox(u'No se pudo realizar la tarea',u'Modificación de Instructor/a ', wx.ICON_ERROR, self)
+        finally:
+            c.close()
         self.frame.Destroy()
 
 # Modificación de Coordinadores
@@ -1702,7 +1744,7 @@ class Frame(wx.Frame):
             if (dlg.ShowModal() == wx.ID_OK):
                 selections = dlg.GetSelection()
                 self.coordAmodificar = q[selections][0]
-                c. execute('''SELECT * FROM coordinadores WHERE id_coordinador = %s''',(self.coordAmodificar))
+                c. execute(("SELECT * FROM coordinadores WHERE id_coordinador = %s") % (self.coordAmodificar))
                 q = c.fetchall()
                 c.close()
                 self.frame = wx.Frame(self,-1,u'Modificación de coordinador/a %s' % q[0][1],size=(500,350))
@@ -1782,7 +1824,8 @@ class Frame(wx.Frame):
         celular = self.celular.GetValue()
         correo = self.correo.GetValue()
         c = self.db.cursor()
-        c.execute("""UPDATE coordinadores SET apellidos = %s,nombres = %s,calle = %s,numero = %s,localidad = %s,te_contacto = %s,celular = %s,correo = %s WHERE id_instructor = %s""",(apellidos,nombres,calle,numero,localidad,telefono,celular,correo,self.instAmodificar))
+        c.execute('''UPDATE coordinadores SET apellidos=? ,nombres=? ,calle=?,numero=?,localidad=?,te_contacto=?,celular=?,correo=? WHERE id_coordinador=?''' , (apellidos,nombres,calle,numero,localidad,telefono,celular,correo,self.coordAmodificar,))
+        self.db.commit() 
         wx.MessageBox(u'Tarea realizada con éxito',u'Modificación de Coordinador/a %s' % apellidos,wx.OK | wx.ICON_INFORMATION,self)
         c.close()
         self.frame.Destroy()
@@ -1794,14 +1837,14 @@ class Frame(wx.Frame):
             self.frame.Close()
         finally:
             c = self.db.cursor()
-            c.execute("""SELECT id_establecimiento,nombre FROM establecimientos ORDER BY id_establecimiento""")
+            c.execute("SELECT id_establecimiento,nombre FROM establecimientos ORDER BY id_establecimiento")
             q = c.fetchall()
             StrCentros = [("%s %s" % tuple(a)) for a in q]
             dlg = wx.SingleChoiceDialog(self,u'Seleccione el Centro a Modificar:',u'Modificación de Centro FP',StrCentros)
             if (dlg.ShowModal() == wx.ID_OK):
                 selections = dlg.GetSelection()
                 centroAmodificar = q[selections][0]
-                c. execute('''SELECT * FROM establecimientos WHERE id_establecimiento = %s''',(centroAmodificar))
+                c. execute('''SELECT * FROM establecimientos WHERE id_establecimiento = ?''',(centroAmodificar))
                 q = c.fetchall()
                 self.id_mod = centroAmodificar
                 self.frame = wx.Frame(self,-1,u'Modificación de Centro %s' % q[0][3],size=(500,350))
@@ -1893,10 +1936,15 @@ class Frame(wx.Frame):
         correo = self.correo.GetValue()
         site = self.site.GetValue()
         coordinador = self.coordinador.GetValue()
-        c = self.db.cursor()
-        c.execute("""UPDATE establecimientos SET nombre = %s,calle = %s,num_puerta = %s,localidad = %s,cp = %s,telefono = %s,correo = %s,site = %s,coordinador = %s WHERE id_establecimiento = %s""",(escuela,calle,numero,localidad,codigo,telefono,correo,site,coordinador,self.id_mod))
-        wx.MessageBox(u'Tarea realizada con éxito',u'Modificación de Centro %s' % escuela,wx.OK | wx.ICON_INFORMATION,self)
-        c.close()
+        try:
+            c = self.db.cursor()
+            c.execute("""UPDATE establecimientos SET nombre = ?,calle = ?,num_puerta = ?,localidad = ?,cp = ?,telefono = ?,correo = ?,site = ?,coordinador = ? WHERE id_establecimiento = ?""",(escuela,calle,numero,localidad,codigo,telefono,correo,site,coordinador,self.id_mod))
+            self.db.commit()
+            wx.MessageBox(u'Tarea realizada con éxito',u'Modificación de Centro %s' % escuela,wx.OK | wx.ICON_INFORMATION,self)
+        except:
+            wx.MessageBox(u'No se pudo realizar la tarea',u'Modificación de Centro', wx.ICON_ERROR, self)
+        finally:
+            c.close()
         self.frame.Destroy()
 
 # Modificación de Administrativos
@@ -1912,7 +1960,7 @@ class Frame(wx.Frame):
             if (dlg.ShowModal() == wx.ID_OK):
                 selections = dlg.GetSelection()
                 self.admAmodificar = q[selections][0]
-                c. execute('''SELECT * FROM administrativos WHERE id_administrativo = %s''',(self.admAmodificar))
+                c. execute('''SELECT * FROM administrativos WHERE id_administrativo = ?''',(self.admAmodificar))
                 q = c.fetchall()
                 c.close()
                 self.frame = wx.Frame(self,-1,u'Modificación de Administrativo/a %s' % q[0][2],size=(500,350))
@@ -1998,10 +2046,15 @@ class Frame(wx.Frame):
         telefono = self.telefono.GetValue()
         celular = self.celular.GetValue()
         correo = self.correo.GetValue()
-        c = self.db.cursor()
-        c.execute("""UPDATE administrativos SET cargo = %s,apellidos = %s,nombres = %s,calle = %s,numero = %s,localidad = %s,telefono = %s,celular = %s,correo = %s WHERE id_administrativo = %s""",(cargo,apellidos,nombres,calle,numero,localidad,telefono,celular,correo,self.admAmodificar))
-        wx.MessageBox(u'Tarea realizada con éxito',u'Modificación de Administrativo/a',wx.OK | wx.ICON_INFORMATION,self)
-        c.close()
+        try:
+            c = self.db.cursor()
+            c.execute("""UPDATE administrativos SET cargo = ?,apellidos = ?,nombres = ?,calle = ?,numero = ?,localidad = ?,telefono = ?,celular = ?,correo = ? WHERE id_administrativo = ?""",(cargo,apellidos,nombres,calle,numero,localidad,telefono,celular,correo,self.admAmodificar))
+            self.db.commit()
+            wx.MessageBox(u'Tarea realizada con éxito',u'Modificación de Administrativo/a',wx.OK | wx.ICON_INFORMATION,self)
+        except:
+            wx.MessageBox(u'No se pudo realizar la tarea',u'Modificación de Acministrativo/a', wx.ICON_ERROR, self)
+        finally:
+            c.close()
         self.frame.Destroy()
 
 # Modificación de Auxiliares
@@ -2055,9 +2108,9 @@ class Frame(wx.Frame):
                 fechaLbl = wx.StaticText(panel,-1,u'Fecha de inicio:')
                 self.fechaInicio = wx.DatePickerCtrl(panel,-1,size=(120,-1),style=wx.DP_DROPDOWN | wx.DP_SHOWCENTURY)
                 com = q[0][10]
-                dia = com.day
-                mes = com.month
-                anio = com.year
+                dia = int(com[8:10])
+                mes = int(com[5:7])
+                anio = int(com[0:4])
                 comienzo = wx.DateTimeFromDMY(dia,mes-1,anio)
                 self.fechaInicio.SetValue(comienzo)
                 saveBtn = wx.Button(panel,-1,u'&Aceptar')
@@ -2115,10 +2168,14 @@ class Frame(wx.Frame):
         correo = self.correo.GetValue()
         dia = self.fechaInicio.GetValue()
         inicio = ('%04d/%02d/%02d' % (dia.GetYear(),dia.GetMonth()+1,dia.GetDay()))
-        c = self.db.cursor()
-        c.execute("""UPDATE auxiliares SET cargo = %s,apellidos = %s,nombres = %s,calle = %s,numero = %s,localidad = %s,telefono = %s,dni = %s,correo = %s,inicio = %s WHERE id_auxiliar = %s""",(cargo,apellidos,nombres,calle,numero,localidad,telefono,dni,correo,inicio,self.auxAmodificar))
-        wx.MessageBox(u'Tarea realizada con éxito',u'Modificación de Auxiliar',wx.OK | wx.ICON_INFORMATION,self)
-        c.close()
+        try:
+            c = self.db.cursor()
+            c.execute("""UPDATE auxiliares SET cargo = ?,apellidos = ?,nombres = ?,calle = ?,numero = ?,localidad = ?,telefono = ?,dni = ?,correo = ?,inicio = ? WHERE id_auxiliar = ?""",(cargo,apellidos,nombres,calle,numero,localidad,telefono,dni,correo,inicio,self.auxAmodificar))
+            wx.MessageBox(u'Tarea realizada con éxito',u'Modificación de Auxiliar',wx.OK | wx.ICON_INFORMATION,self)
+        except:
+            wx.MessageBox(u'No se pudo realizar la tarea',u'Modificación de Auxiliar', wx.ICON_ERROR, self)
+        finally:
+            c.close()
         self.frame.Destroy()
 
 
@@ -2171,7 +2228,7 @@ class Frame(wx.Frame):
             self.Bind(wx.EVT_BUTTON,self.OnCancelar,btnCancelar)
             self.frame.CentreOnScreen()
             self.frame.Show()
-            
+
 # Listar los alumnos a agregar a un curso ya iniciado
     def OnAgrAlum(self,evt):
         num_curso = self.cursoList.GetValue()
@@ -2187,30 +2244,34 @@ class Frame(wx.Frame):
             selections = dlg.GetSelections()
             for x in selections:
                 id_alumno = q[x][0]
-                c.execute('''INSERT INTO curso_%s (id_alumno) VALUES (%s)'''% (str(num_curso),id_alumno))
+                c.execute('''INSERT INTO curso_%s (id_alumno) VALUES (?)'''% (str(num_curso),id_alumno))
                 wx.MessageBox(u'Tarea realizada con éxito',u'Actualización de Curso %s' % num_curso,wx.OK | wx.ICON_INFORMATION,self)
         c.close()
 
-        
 
-# Actualización de la tabla administrativos
-    def OnModAux(self,evt):
-        cargo = self.cargo.GetValue()
-        apellidos = self.apellidos.GetValue()
-        nombres = self.nombres.GetValue()
-        calle = self.calle.GetValue()
-        numero = self.numero.GetValue()
-        localidad = self.localidad.GetValue()
-        telefono = self.telefono.GetValue()
-        dni = self.dni.GetValue()
-        correo = self.correo.GetValue()
-        dia = self.fechaInicio.GetValue()
-        inicio = ('%04d/%02d/%02d' % (dia.GetYear(),dia.GetMonth()+1,dia.GetDay()))
-        c = self.db.cursor()
-        c.execute("""UPDATE auxiliares SET cargo = %s,apellidos = %s,nombres = %s,calle = %s,numero = %s,localidad = %s,telefono = %s,dni = %s,correo = %s,inicio = %s WHERE id_auxiliar = %s""",(cargo,apellidos,nombres,calle,numero,localidad,telefono,dni,correo,inicio,self.auxAmodificar))
-        wx.MessageBox(u'Tarea realizada con éxito',u'Modificación de Auxiliar',wx.OK | wx.ICON_INFORMATION,self)
-        c.close()
-        self.frame.Destroy()
+
+## Actualización de la tabla administrativos
+#    def OnModAux(self,evt):
+#        cargo = self.cargo.GetValue()
+#        apellidos = self.apellidos.GetValue()
+#        nombres = self.nombres.GetValue()
+#        calle = self.calle.GetValue()
+#        numero = self.numero.GetValue()
+#        localidad = self.localidad.GetValue()
+#        telefono = self.telefono.GetValue()
+#        dni = self.dni.GetValue()
+#        correo = self.correo.GetValue()
+#        dia = self.fechaInicio.GetValue()
+#        inicio = ('%04d/%02d/%02d' % (dia.GetYear(),dia.GetMonth()+1,dia.GetDay()))
+#        try:
+#            c = self.db.cursor()
+#            c.execute("""UPDATE auxiliares SET cargo = %s,apellidos = %s,nombres = %s,calle = %s,numero = %s,localidad = %s,telefono = %s,dni = %s,correo = %s,inicio = %s WHERE id_auxiliar = %s""",(cargo,apellidos,nombres,calle,numero,localidad,telefono,dni,correo,inicio,self.auxAmodificar))
+#            wx.MessageBox(u'Tarea realizada con éxito',u'Modificación de Auxiliar',wx.OK | wx.ICON_INFORMATION,self)
+#        except:
+#            wx.MessageBox(u'No se pudo realizar la tarea',u'Modificación de auxiliar', wx.ICON_ERROR, self)
+#        finally:
+#            c.close()
+#        self.frame.Destroy()
 
 
 
@@ -2384,7 +2445,7 @@ class Frame(wx.Frame):
             id = id[0]
             now = datetime.datetime.now()
             c = self.db.cursor()
-            c.execute('''UPDATE curso_%s SET causa = %s,dia = %s,abandono = 1 WHERE id_alumno = %s''',(int(self.numCurso),causa,now,int(id)))
+            c.execute('''UPDATE curso_? SET causa = ?,dia = ?,abandono = 1 WHERE id_alumno = ?''',(int(self.numCurso),causa,now,int(id)))
             c.close()
             wx.MessageBox(u'Baja de estudiante %s en el curso N° %s' % (alumno,self.numCurso),u'Tarea realizada con éxito',wx.OK | wx.ICON_INFORMATION,self)
 
@@ -2402,14 +2463,14 @@ class Frame(wx.Frame):
             self.dialog.Destroy()
             # Creo el diálogo para seleccionar entre todos los que tienen el mismo apellido
             c = self.db.cursor()
-            c.execute('''SELECT id_alumno,apellidos,nombres,num_doc FROM alumnos WHERE apellidos = %s''',(self.apellido))
+            c.execute('''SELECT id_alumno,apellidos,nombres,num_doc FROM alumnos WHERE apellidos = ?''',(self.apellido))
             q = c.fetchall()
             StrAlum = [("%d %s %s %s" % tuple(a)) for a in q]
             dlg = wx.SingleChoiceDialog(self,u'Estudiantes que cumplen el criterio de búsqueda:',u'Seguimiento de estudiantes',StrAlum)
             if (dlg.ShowModal() == wx.ID_OK):
                 selections = dlg.GetSelection()
                 self.alumnoAingresar = q[selections][0]
-                c. execute('''SELECT * FROM alumnos WHERE id_alumno = %s''',(self.alumnoAingresar))
+                c. execute('''SELECT * FROM alumnos WHERE id_alumno = ?''',(self.alumnoAingresar))
                 q = c.fetchone()
                 c.close()
                 self.alumnoAseguir = q[2] + u' ' + q[1]
@@ -2466,7 +2527,7 @@ class Frame(wx.Frame):
         estado = self.estado.GetValue()
         fecha = datetime.datetime.now()
         c = self.db.cursor()
-        c.execute('''INSERT into seguimiento (id_alumno,rubro,empresa,estado,fecha) values (%s,%s,%s,%s,%s)''',(estudiante,rubro,empresa,estado,fecha))
+        c.execute('''INSERT into seguimiento (id_alumno,rubro,empresa,estado,fecha) values (?,?,?,?,?)''',(estudiante,rubro,empresa,estado,fecha))
         c.close()
         self.frame.Close()
         wx.MessageBox(u'Ingreso de seguimiento de egresado/a',u'Tarea realizada con éxito',wx.OK | wx.ICON_INFORMATION,self)
@@ -2517,7 +2578,7 @@ class Frame(wx.Frame):
                     f.write('\n')
                     f.write('rows = [\n')
                     for cadaobj in q:
-                        c.execute('''SELECT num_curso,tipo,especialidad,instructor,ciclo,horas,establecimiento,estado FROM cursos WHERE num_curso = %s ''' % (cadaobj))
+                        c.execute('''SELECT num_curso,tipo,especialidad,instructor,ciclo,horas,establecimiento,estado FROM cursos WHERE num_curso = ? ''', (cadaobj))
                         w = c.fetchall()
                         f.write ('%s,\n' %(w))
                     f.write (']')
@@ -2533,7 +2594,7 @@ class Frame(wx.Frame):
                     if dlg.ShowModal() == wx.ID_OK:
                         num_curso = dlg.GetValue()
                         dlg.Destroy()
-                        c.execute('''SELECT id_alumno FROM curso_%s''' % (num_curso))
+                        c.execute('''SELECT id_alumno FROM {curso}'''.format(curso="curso_"+num_curso))
                         q = c.fetchall()
                         # Creo un archivo list_curso_num.py y lo lleno con las filas y las columnas
                         f = open('./py/list_curso_num.py','w')
@@ -2546,7 +2607,7 @@ class Frame(wx.Frame):
                         f.write('\n')
                         f.write('rows = [\n')
                         for cadaobj in q:
-                            c.execute('''SELECT apellidos,nombres,num_doc,calle_dom,num_dom,localidad_dom,tel_dom,correo FROM alumnos WHERE id_alumno = %s ''' % (cadaobj))
+                            c.execute('''SELECT apellidos,nombres,num_doc,calle_dom,num_dom,localidad_dom,tel_dom,correo FROM alumnos WHERE id_alumno = ? ''', (cadaobj[0],))
                             w = c.fetchall()
                             f.write ('%s,\n' % w)
                         f.write (']')
@@ -2561,7 +2622,7 @@ class Frame(wx.Frame):
                         instructor = dlg.GetValue()
                         dlg.Destroy()
                         c.execute('''SELECT num_curso,tipo,especialidad,ciclo,
-                         establecimiento FROM cursos WHERE instructor = "%s"''' % (instructor))
+                         establecimiento FROM cursos WHERE instructor = ?''', (instructor,))
                         q = c.fetchall()
                         f = open('./py/list_curso_ins.py','w')
                         f.write('# -*- coding: UTF8 -*-\n')
@@ -2745,7 +2806,7 @@ class Frame(wx.Frame):
              style = wx.DEFAULT_FRAME_STYLE)
             ventana.CenterOnScreen()
             ventana.Show(True)
-            
+
         c.close()
 
 
@@ -2764,14 +2825,14 @@ class Frame(wx.Frame):
             self.dialog.Destroy()
             # Creo el diálogo para seleccionar entre todos los que tienen el mismo apellido
             c = self.db.cursor()
-            c.execute('''SELECT id_alumno,apellidos,nombres,num_doc FROM alumnos WHERE apellidos = %s''',(self.apellido))
+            c.execute('''SELECT id_alumno,apellidos,nombres,num_doc FROM alumnos WHERE apellidos = ?''',(self.apellido,))
             q = c.fetchall()
             StrAlum = [("%d %s %s %s" % tuple(a)) for a in q]
             dlg = wx.SingleChoiceDialog(self,u'Estudiantes que cumplen el criterio de búsqueda:',u'Legajo de estudiantes',StrAlum)
             if (dlg.ShowModal() == wx.ID_OK):
                 selections = dlg.GetSelection()
                 self.alumnoAlistar = q[selections][0]
-                c. execute('''SELECT * FROM alumnos WHERE id_alumno = %s''',(self.alumnoAlistar))
+                c. execute('''SELECT * FROM alumnos WHERE id_alumno = ?''',(self.alumnoAlistar,))
                 q = c.fetchall()
                 import fichaalumno
                 ventana = fichaalumno.ModEstudiante(self.alumnoAlistar,None,-1,u'Ficha de alumno')
@@ -2828,9 +2889,10 @@ class Frame(wx.Frame):
         c = self.db.cursor()
         c.execute('''SELECT id_alumno FROM curso_%s''' % (self.num_curso))
         q = c.fetchall()
-        c.execute ('''TRUNCATE table fichacurso''')
+        c.execute ('''DELETE FROM fichacurso''')
+        self.db.commit()
         for alumno in q:
-            c.execute('''SELECT nombres,apellidos,nacionalidad,fecha_nac,tipo_doc,num_doc,calle_dom,num_dom,localidad_dom,sexo FROM alumnos WHERE id_alumno = %s''' % (int(alumno[0])))
+            c.execute('''SELECT nombres,apellidos,nacionalidad,fecha_nac,tipo_doc,num_doc,calle_dom,num_dom,localidad_dom,sexo FROM alumnos WHERE id_alumno = ?''', (int(alumno[0]),))
             r = c.fetchone()
             apell_nombre = r[1] + u' '+ r[0]
             nac = r[2]
@@ -2841,10 +2903,10 @@ class Frame(wx.Frame):
             num_doc = r[5]
             domicilio = r[6] + u' '+ r[7] + u' '+ r[8]
             sexo = r[9]
-            c.execute('''INSERT INTO fichacurso (apell_nom,nac,fecha_nac,tipo_doc,num_doc,domicilio,sexo) VALUES (%s,%s,%s,%s,%s,%s,%s)''',(apell_nombre,nac,fecha_nac,tipo_doc,num_doc,domicilio,sexo))
-        c.execute('''SELECT tipo,especialidad,instructor,fecha_inicio,fecha_final,horas,horario,establecimiento FROM cursos WHERE num_curso = %s''',(self.num_curso))
+            c.execute('''INSERT INTO fichacurso (apell_nom,nac,fecha_nac,tipo_doc,num_doc,domicilio,sexo) VALUES (?,?,?,?,?,?,?)''',(apell_nombre,nac,fecha_nac,tipo_doc,num_doc,domicilio,sexo))
+        c.execute('''SELECT tipo,especialidad,instructor,fecha_inicio,fecha_final,horas,horario,establecimiento FROM cursos WHERE num_curso = ?''',(self.num_curso,))
         q = c.fetchone()
-        c.execute('''SELECT tipo,numero,calle,num_puerta,localidad FROM establecimientos WHERE nombre = %s''',(q[7]))
+        c.execute('''SELECT tipo,numero,calle,num_puerta,localidad FROM establecimientos WHERE nombre = ?''',(q[7],))
         r = c.fetchone()
         c.execute('''SELECT nombre,localidad FROM miescuela LIMIT 1''')
         s = c.fetchone()
@@ -2853,14 +2915,14 @@ class Frame(wx.Frame):
         orden = 1
         # Doy vuelta las fechas para que se lea bien en la ficha de curso
         fecha_inic = q[3]
-        dia = fecha_inic.day
-        mes = fecha_inic.month
-        anio = fecha_inic.year
+        dia = int(fecha_inic[8:10])
+        mes = int(fecha_inic[5:7])
+        anio = int(fecha_inic[0:4])
         fechainic = u'%02d' % dia + '-' + u'%02d' % mes + '-' + str(anio)
         fecha_fin = q[4]
-        dia = fecha_fin.day
-        mes = fecha_fin.month
-        anio = fecha_fin.year
+        dia = int(fecha_fin[8:10])
+        mes = int(fecha_fin[5:7])
+        anio = int(fecha_fin[0:4])
         fechafin = u'%02d' % dia + '-' + u'%02d' % mes + '-' + str(anio)
         c.close()
         # Comienzo a confeccionar la ficha de curso llena
@@ -2949,9 +3011,9 @@ class Frame(wx.Frame):
                     break
                 #Doy vuelta las fechas para que se lea bien en la ficha de curso
                 dia_actual = alumno[3]
-                dia = dia_actual.day
-                mes = dia_actual.month
-                anio = dia_actual.year
+                dia = int(dia_actual[8:10])
+                mes = int(dia_actual[5:7])
+                anio = int(dia_actual[0:4])
                 nac = '%02d' % dia + '-' + '%02d' % mes + '-' + str(anio)
                 c.drawString(primero_x*cm,primero_y*cm,u'%s' % nac)
                 primero_y -= 0.5
@@ -3063,9 +3125,9 @@ class Frame(wx.Frame):
             for alumno in t[22:]:
                 #Doy vuelta las fechas para que se lea bien en la ficha de curso
                 dia_actual = alumno[3]
-                dia = dia_actual.day
-                mes = dia_actual.month
-                anio = dia_actual.year
+                dia = int(fdia_actual[8:10])
+                mes = int(dia_actual[5:7])
+                anio = int(dia_actual[0:4])
                 nac = '%02d' % dia + '-' + '%02d' % mes + '-' + str(anio)
                 c.drawString(primero_x*cm,primero_y*cm,u'%s' % nac)
                 primero_y -= 0.5
@@ -3150,7 +3212,7 @@ class Frame(wx.Frame):
         self.Bind(wx.EVT_BUTTON,self.OnImpresionLegajos,saveBtn)
         self.Bind(wx.EVT_BUTTON,self.OnCancelar,cancelBtn)
         self.frame.Show()
-        
+
 # Impresión de los legajos
     def OnImpresionLegajos(self,evt):
         curso = self.numCurso.GetValue()
@@ -3162,7 +3224,7 @@ class Frame(wx.Frame):
         finally:
             pass
         c = self.db.cursor()
-        c.execute('''SELECT id_alumno FROM curso_%s WHERE abandono = 0 ORDER BY id_alumno ASC''' % curso)
+        c.execute('''SELECT id_alumno FROM {curso} WHERE abandono = 0 ORDER BY id_alumno ASC'''.format(curso="curso_" + curso))
         alumnos = c.fetchall()
         # Bucleo y hago los legajos
         from reportlab.pdfgen import canvas
@@ -3172,9 +3234,9 @@ class Frame(wx.Frame):
         import legajo_dgce
         for alumno in alumnos:
             id = alumno[0]
-            c.execute('''SELECT * FROM alumnos WHERE id_alumno = %s''' % id)
+            c.execute('''SELECT * FROM alumnos WHERE id_alumno = ?''', (id,))
             q = c.fetchone()
-            c.execute('''SELECT * FROM cursos WHERE num_curso = %s''' % curso)
+            c.execute('''SELECT * FROM cursos WHERE num_curso = ?''', (curso,))
             k = c.fetchone()
             l = legajo_dgce.canvas.Canvas("./planillas/legajos_%s/%s_%s_legajo.pdf" % (curso,q[1],q[2]),
              pagesize=portrait(legal))
@@ -3195,11 +3257,11 @@ class Frame(wx.Frame):
             l.drawString(1.6*cm,-10.8*cm,u'%s' % q[3]) # sexo
             # fecha nacimiento
             dia = q[7]
-            dianac = dia.day
-            mes = dia.month
-            anio = dia.year
+            dianac = int(dia[8:10])
+            mes = int(dia[5:7])
+            anio = int(dia[0:4])
             fechanac = str(dianac) + '/' + str(mes) + '/' + str(anio)
-            l.drawString(4.9*cm,-10.8*cm,fechanac) # Fecha Nacimiento    
+            l.drawString(4.9*cm,-10.8*cm,fechanac) # Fecha Nacimiento
             l.drawString(9.7*cm,-10.8*cm,u'%s' % q[8]) # Lugar Nacimiento
             l.drawString(16*cm,-10.8*cm,u'%s' % q[6]) # Nacionalidad
             l.drawString(3.6*cm,-11.7*cm,u'%s' % q[9]) # Calle domicilio
@@ -3264,7 +3326,7 @@ class Frame(wx.Frame):
             elif q[46] == 'Terciarios':
                 l.drawString(7.1*cm,-26.0*cm,u'X')
             elif q[46] == 'Universitarios':
-                l.drawString(8.5*cm,-26.0*cm,u'X')    
+                l.drawString(8.5*cm,-26.0*cm,u'X')
             # responsable hasta estudios
             if q[47] == '0':
                 l.drawString(12.9*cm,-26.0*cm,u'X')
@@ -3282,17 +3344,17 @@ class Frame(wx.Frame):
             l.drawString(13.1*cm,-28.4*cm,u'%s' % q[56]) # te dom resp
             l.showPage()
             l.save()
-        # Reverso del legajo    
+        # Reverso del legajo
         for alumno in alumnos:
             id = alumno[0]
-            c.execute('''SELECT * FROM alumnos WHERE id_alumno = %s''' % id)
+            c.execute('''SELECT * FROM alumnos WHERE id_alumno = ?''', (id,))
             q = c.fetchone()
-            c.execute('''SELECT * FROM cursos WHERE num_curso = %s''' % curso)
+            c.execute('''SELECT * FROM cursos WHERE num_curso = ?''', (curso,))
             k = c.fetchone()
             #Se hace una lista igual que la tupla para
             # poder asignar espacios a los campos vacíos.
             qr = list(q)
-            
+
             for f in range(57,85):
                 if q[f] == None:
                     qr[f] = ' '
@@ -3304,7 +3366,7 @@ class Frame(wx.Frame):
             # Tiene una enfermedad
             if q[59] == '1':
                 l.drawString(1.1*cm,-3.3*cm,u'X')
-                l.drawString(5.0*cm,-3.3*cm,u'%s' % qr[60]) # tipo de enfermedad 
+                l.drawString(5.0*cm,-3.3*cm,u'%s' % qr[60]) # tipo de enfermedad
             else:
                 l.drawString(2.9*cm,-3.3*cm,u'X')
             # Si fue internado
@@ -3338,7 +3400,7 @@ class Frame(wx.Frame):
                 l.drawString(6.2*cm,-8.4*cm,u'X')
             # limitación
             if q[71] == '1':
-                l.drawString(8.3*cm,-9.0*cm,u'X') 
+                l.drawString(8.3*cm,-9.0*cm,u'X')
                 l.drawString(13.1*cm,-9.0*cm,u'%s' % qr[72]) # aclarac limitación
             else:
                 l.drawString(10.0*cm,-9.0*cm,u'X')
@@ -3362,7 +3424,7 @@ class Frame(wx.Frame):
             l.showPage()
             l.save()
         # Cierro las conexiones e informo de la confección
-        # correcta de los legajos    
+        # correcta de los legajos
         c.close()
         wx.MessageBox(u'Tarea realizada con éxito. se han confeccionado los legajos del curso %s y se guardaron en una carpeta propia dentro del directorio ./planillas' % curso,
          u'Confección de legajos',wx.OK | wx.ICON_INFORMATION,self)
@@ -5202,7 +5264,7 @@ if __name__== '__main__':
         conexion = sql3.connect(bbdd)
         cur = conexion.cursor()
         ####### Crea si no existen las tablas de datos
-        ####### Esta modificación obedece a la implementacion en forma loca sin ningun tio de 
+        ####### Esta modificación obedece a la implementacion en forma loca sin ningun tio de
         ####### servidor de BBDD como PostgreSQL o MySQL
         ####### se utiliza SQLite
         ####################################
@@ -5302,7 +5364,7 @@ if __name__== '__main__':
   familiar_nombres text(30) default NULL,
   familiar_dom text(30) default NULL,
   familiar_te text(15) default NULL)''')
-        
+
         #######################################################
         #### Tabla Auxiliares
         cur.execute('''CREATE TABLE IF NOT EXISTS auxiliares (
@@ -5340,7 +5402,7 @@ if __name__== '__main__':
         #### Tabla Establecimientos
         cur.execute('''CREATE TABLE IF NOT EXISTS establecimientos (
   id_establecimiento integer PRIMARY KEY AUTOINCREMENT NOT NULL,
-  tipo text(3)  NOT NULL , numero char(3)  NOT NULL default '000',
+  tipo text(3)  NOT NULL default 'CFP', numero char(3)  NOT NULL default '000',
   nombre text(40)  NOT NULL, calle text(20)  NOT NULL,
   num_puerta text(5)  NOT NULL, localidad text(25)  NOT NULL,
   cp text(8)  NOT NULL, telefono text(15)  NOT NULL,
@@ -5418,6 +5480,6 @@ if __name__== '__main__':
   num_doc text(10)  NOT NULL)''')
 ############################################################################################################
 
-##### Inicio de aplicación        
-    
+##### Inicio de aplicación
+
     app.MainLoop()

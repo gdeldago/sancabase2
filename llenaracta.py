@@ -28,7 +28,7 @@
 
 import wx
 import wx.grid
-import MySQLdb
+import sqlite3 as sql3
 
 # begin wxGlade: extracode
 # end wxGlade
@@ -38,7 +38,7 @@ import MySQLdb
 class ActaExamen(wx.Frame):
     def __init__(self, *args, **kwds):
         # Conectarse a la db
-        self.db = MySQLdb.connect('localhost', 'javier', 'javier', 'escuela', charset='UTF8')
+        self.db = sql3.connect("sancabase2.db")
         c = self.db.cursor()
         # begin wxGlade: ActaExamen.__init__
         kwds["style"] = wx.DEFAULT_FRAME_STYLE
@@ -117,29 +117,30 @@ class ActaExamen(wx.Frame):
     def OnSeleccionCurso(self, event): # wxGlade: ActaExamen.<event_handler>
         self.gridCurso.ClearGrid()
         self.filas = self.gridCurso.GetNumberRows()
-        self.gridCurso.DeleteRows(0, self.filas, False)
+        #self.gridCurso.DeleteRows(0, self.filas, False)
         self.curso = self.comboCurso.GetValue()
         c = self.db.cursor()
-        c.execute('''SELECT fecha_final FROM cursos WHERE num_curso = %s''' % (self.curso))
+        c.execute('''SELECT fecha_final FROM cursos WHERE num_curso = ?''',(self.curso,))
         r = c.fetchone()
         diaex = r[0]
-        dia = diaex.day
-        mes = diaex.month
-        anio = diaex.year
+        dia = int(diaex[8:10])
+        mes = int(diaex[5:7])
+        anio = int(diaex[0:4])
         diaexamen = wx.DateTimeFromDMY(dia,mes-1,anio)
         self.dateExamen.SetValue(diaexamen)
-        c.execute('''SELECT id_alumno FROM curso_%s WHERE abandono = 0 order by id_alumno'''%  str(self.curso))
+        c.execute('''SELECT id_alumno FROM {curso} WHERE abandono = 0 order by id_alumno'''.format(curso="curso_" + self.curso))
         q = c.fetchall()
         ListAlum = [(u'%s' % tuple(a)) for a in q]
         try:
-            c.execute('''DROP table `temporal`;''')
+            c.execute('''DELETE FROM temporal''')
+            self.db.commit()
         except: 
-            pass
-        c.execute('''CREATE TABLE temporal (`id_alumno` VARCHAR(11) NOT NULL, `apellidos` VARCHAR(30) NOT NULL , `nombres` VARCHAR(30) NOT NULL, `sexo` CHAR(1) NOT NULL, `tipo_doc` VARCHAR(3) NOT NULL,`num_doc` VARCHAR(10) NOT NULL, PRIMARY KEY (`id_alumno`))''')
+            c.execute('''CREATE TABLE temporal (`id_alumno` VARCHAR(11) NOT NULL, `apellidos` VARCHAR(30) NOT NULL , `nombres` VARCHAR(30) NOT NULL, `sexo` CHAR(1) NOT NULL, `tipo_doc` VARCHAR(3) NOT NULL,`num_doc` VARCHAR(10) NOT NULL, PRIMARY KEY (`id_alumno`))''')
         for id in ListAlum:       
-            c.execute('''SELECT apellidos, nombres, sexo, tipo_doc, num_doc FROM alumnos WHERE id_alumno = %s''', (id))
+            c.execute('''SELECT apellidos, nombres, sexo, tipo_doc, num_doc FROM alumnos WHERE id_alumno = ?''', (id,))
             q = c.fetchone()
-            c.execute('''INSERT INTO temporal (id_alumno, apellidos, nombres, sexo, tipo_doc, num_doc)values (%s, %s, %s, %s, %s, %s)''', (id, q[0], q[1], q[2], q[3], q[4]))
+            c.execute('''INSERT INTO temporal (id_alumno, apellidos, nombres, sexo, tipo_doc, num_doc)values (?,?,?,?,?,?)''', (id, q[0], q[1], q[2], q[3], q[4],))
+            self.db.commit()
         c.execute('''SELECT * FROM temporal ORDER BY sexo DESC, apellidos, nombres''')
         q = c.fetchall()
         listAlumnosEnCurso = []
@@ -189,7 +190,7 @@ class ActaExamen(wx.Frame):
             actaexamenes(acta)
             acta.drawString(28.5*cm, 15.9*cm, u'%s' % self.curso) # Número de curso
             c = self.db.cursor()
-            c.execute('''SELECT * FROM cursos WHERE num_curso = %s''' % self.curso)
+            c.execute('''SELECT * FROM cursos WHERE num_curso = ?''', (self.curso,))
             q = c.fetchone()
             c.execute('''SELECT nombre, localidad FROM miescuela''')
             r = c.fetchone()
@@ -300,7 +301,7 @@ class ActaExamen(wx.Frame):
             actaexamenes(acta)
             acta.drawString(28.5*cm, 15.9*cm, u'%s' % self.curso) # Número de curso
             c = self.db.cursor()
-            c.execute('''SELECT * FROM cursos WHERE num_curso = %s''' % self.curso)
+            c.execute('''SELECT * FROM cursos WHERE num_curso = ?''', (self.curso,))
             q = c.fetchone()
             c.execute('''SELECT nombre, localidad FROM miescuela''')
             r = c.fetchone()
@@ -412,7 +413,8 @@ class ActaExamen(wx.Frame):
         dlg.Destroy()
         # Cierro el curso
         c = self.db.cursor()
-        c.execute('''UPDATE cursos SET estado = %s WHERE id_curso = %s;''', (u'I', q[0]))
+        c.execute('''UPDATE cursos SET estado = ? WHERE id_curso = ?;''', (u'I', q[0]))
+        self.db.commit()
         c.close()
         self.Close()
 

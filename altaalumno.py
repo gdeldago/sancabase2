@@ -591,38 +591,36 @@ class AltaEstudiante(wx.Frame):
         #self.db = MySQLdb.connect('localhost', 'javier', 'javier', 'escuela', charset='UTF8')
         #c = self.db.cursor()
         # Conexión a la base de datos
-    archivoBBDD = "sancabase2.db"
-    bbdd = archivoBBDD
-    import sqlite3 as sql3
-    conexion = sql3.connect(bbdd)
-    cur = conexion.cursor()
-    #dattos = [apellidos, nombres, sexo, tipo_doc, num_doc,
-          #nacionalidad, fecha_nac, lugar_nac, calle_dom, num_dom, piso_dom, dpto_dom,
-          #cp_dom, localidad_dom, pcia_dom, tel_dom, estudios, hasta_est, correo, jefe, empleo,
-          #resp, resp_esjefe, resp_nombre, resp_nac, resp_profesion, resp_condicion, resp_estudios, 
-          #resp_hasta_estudios, resp_tipo_doc, resp_num_doc, resp_calle_dom, resp_num_dom, resp_piso_dom, 
-          #resp_dpto_dom, resp_localidad_dom, resp_cp_dom, resp_te_dom, obra_social, num_afiliado, enfermedad, 
-          #enf_cual, internado, int_por, alergia, alergia_man, alergia_trat, tratamiento, trat_espec,
-          #quirurgico, quir_edad, quir_tipo, limitacion, limitacion_aclaracion, otros, institucion, 
-          #institucion_dom, institucion_te, medico_apellido, medico_nombres, medico_te, familiar_apellido, 
-          #familiar_nombres, familiar_te]
+        archivoBBDD = "sancabase2.db"
+        bbdd = archivoBBDD
+        import sqlite3 as sql3
+        conexion = sql3.connect(bbdd)
+        cur = conexion.cursor()
+        dattos = [apellidos, nombres, sexo, tipo_doc, num_doc,
+        nacionalidad, fecha_nac, lugar_nac, calle_dom, num_dom, piso_dom, dpto_dom,
+        cp_dom, localidad_dom, pcia_dom, tel_dom, estudios, hasta_est, correo, jefe, empleo,
+        resp, resp_esjefe, resp_nombre, resp_nac, resp_profesion, resp_condicion, resp_estudios, 
+        resp_hasta_estudios, resp_tipo_doc, resp_num_doc, resp_calle_dom, resp_num_dom, resp_piso_dom, 
+        resp_dpto_dom, resp_localidad_dom, resp_cp_dom, resp_te_dom, obra_social, num_afiliado, enfermedad, 
+        enf_cual, internado, int_por, alergia, alergia_man, alergia_trat, tratamiento, trat_espec,
+        quirurgico, quir_edad, quir_tipo, limitacion, limitacion_aclaracion, otros, institucion, 
+        institucion_dom, institucion_te, medico_apellido, medico_nombres, medico_te, familiar_apellido, 
+        familiar_nombres, familiar_te]
           
-    cur.execute('''INSERT INTO alumnos (apellidos, nombres, sexo, tipo_doc, num_doc,
-         nacionalidad, fecha_nac, lugar_nac, calle_dom, num_dom, piso_dom, dpto_dom,
-         cp_dom, localidad_dom, pcia_dom, tel_dom, estudios, hasta_est, correo, jefe, empleo,
-          resp, resp_esjefe, resp_nombre, resp_nac, resp_profesion, resp_condicion, resp_estudios, 
-          resp_hasta_estudios, resp_tipo_doc, resp_num_doc, resp_calle_dom, resp_num_dom, resp_piso_dom, 
-          resp_dpto_dom, resp_localidad_dom, resp_cp_dom, resp_te_dom, obra_social, num_afiliado, enfermedad, 
-          enf_cual, internado, int_por, alergia, alergia_man, alergia_trat, tratamiento, trat_espec,
-          quirurgico, quir_edad, quir_tipo, limitacion, limitacion_aclaracion, otros, institucion, 
-          institucion_dom, institucion_te, medico_apellido, medico_nombres, medico_te, familiar_apellido, 
-          familiar_nombres, familiar_te) VALUES ("papo","0" ,"0" ,"0" ,"0" ,"0" ,"0" ,"0" ,"0" ,"0" ,"0" ,"0" ,"0" ,"0" ,"0" ,"0" ,"0" ,"0" ,"0" ,"0" ,"0" ,"0" ,"0" ,"0" ,"0" ,"0" ,"0" ,"0" ,"0" ,"0" ,"0" ,"0" ,"0" ,"0" ,"0" ,"0" ,"0" ,"0" ,"0" ,"0" ,"0" ,"0" ,"0" ,"0" ,"0" ,"0" ,"0" ,"0" ,"0" ,"0" ,"0" ,"0" ,"0" ,"0" ,"0" ,"0" ,"0" ,"0" ,"0" ,"0" ,"0" ,"0" ,"0" ,"0")''')
-          ##?, ?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)''',(dattos,))
-          
-    
-    wx.MessageBox(u'Tarea realizada con éxito', u'Alta de Estudiante', wx.OK | wx.ICON_INFORMATION, self)
-    cur.close()
-    self.Close()
+        cur.execute('''INSERT INTO alumnos (apellidos, nombres, sexo, tipo_doc, num_doc,
+        nacionalidad, fecha_nac, lugar_nac, calle_dom, num_dom, piso_dom, dpto_dom,
+        cp_dom, localidad_dom, pcia_dom, tel_dom, estudios, hasta_est, correo, jefe, empleo,
+        resp, resp_esjefe, resp_nombre, resp_nac, resp_profesion, resp_condicion, resp_estudios, 
+        resp_hasta_estudios, resp_tipo_doc, resp_num_doc, resp_calle_dom, resp_num_dom, resp_piso_dom, 
+        resp_dpto_dom, resp_localidad_dom, resp_cp_dom, resp_te_dom, obra_social, num_afiliado, enfermedad, 
+        enf_cual, internado, int_por, alergia, alergia_man, alergia_trat, tratamiento, trat_espec,
+        quirurgico, quir_edad, quir_tipo, limitacion, limitacion_aclaracion, otros, institucion, 
+        institucion_dom, institucion_te, medico_apellido, medico_nombres, medico_te, familiar_apellido, 
+        familiar_nombres, familiar_te) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)''',(dattos))
+        conexion.commit() 
+        wx.MessageBox(u'Tarea realizada con éxito', u'Alta de Estudiante', wx.OK | wx.ICON_INFORMATION, self)
+        cur.close()
+        self.Close()
         
     def OnCancelar(self, event): # wxGlade: AltaEstudiante.<event_handler>
         self.Close()
